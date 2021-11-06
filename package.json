@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "doppler run next dev -- -p 3001",
+    "dev": "doppler run next dev -- -p 3002",
     "build": "doppler run next build",
     "start": "doppler run next start",
     "lint": "next lint",
