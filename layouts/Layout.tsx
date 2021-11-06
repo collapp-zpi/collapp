@@ -1,13 +1,12 @@
 import { ComponentProps, ReactNode, useState } from 'react'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
-import { FiGithub, FiLogOut, FiSettings } from 'react-icons/fi'
+import { FiLogOut, FiSettings } from 'react-icons/fi'
 import { Loading } from './Loading'
 import classNames from 'classnames'
 import useOnclickOutside from 'react-cool-onclickoutside'
 import Button from 'shared/components/button/Button'
 import { NavbarLogo } from 'shared/components/NavbarLogo'
-import Link from 'next/link'
 import { CgExtension, CgGlobeAlt } from 'react-icons/cg'
 import { useQuery } from 'shared/hooks/useQuery'
 
@@ -49,34 +48,9 @@ export const Layout = ({
       <div className="bg-white mb-8 p-2 border-b border-gray-200 flex">
         <NavbarLogo />
         <div className="mr-auto" />
-        {status === 'authenticated' && (
-          <div className="hidden sm:flex">
-            <Link href="/plugins" passHref>
-              <div className="flex items-center cursor-pointer py-2 px-3 rounded-xl bg-black bg-opacity-0 hover:bg-opacity-5 focus:bg-opacity-5">
-                <CgExtension className="mr-1.5" size="1.25em" />
-                <span>Plugins</span>
-              </div>
-            </Link>
-            <Link href="/published" passHref>
-              <div className="flex items-center cursor-pointer py-2 px-3 mr-2 rounded-xl bg-black bg-opacity-0 hover:bg-opacity-5 focus:bg-opacity-5">
-                <CgGlobeAlt className="mr-1.5" size="1.25em" />
-                <span>Published</span>
-              </div>
-            </Link>
-          </div>
-        )}
         <div className="ml-auto" />
         {status === 'unauthenticated' && (
-          <Button
-            onClick={() =>
-              signIn('github', {
-                callbackUrl: `${window.location.origin}/plugins`,
-              })
-            }
-          >
-            <FiGithub className="mr-2" />
-            Sign in
-          </Button>
+          <Button onClick={() => signIn('google')}>Sign in</Button>
         )}
         {status === 'authenticated' && data && (
           <div className="relative" ref={ref}>
