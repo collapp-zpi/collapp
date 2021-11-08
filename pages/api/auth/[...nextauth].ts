@@ -25,8 +25,6 @@ export default NextAuth({
     signIn: '../../',
     error: '../../error',
     signOut: '../../',
-    verifyRequest: '../../',
-    newUser: '../../',
   },
   adapter: PrismaExtendedAdapter('regular'),
   secret: process.env.AUTH_SECRET,

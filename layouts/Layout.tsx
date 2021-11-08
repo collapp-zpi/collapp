@@ -50,7 +50,13 @@ export const Layout = ({
         <div className="mr-auto" />
         <div className="ml-auto" />
         {status === 'unauthenticated' && (
-          <Button onClick={() => signIn('google')}>Sign in</Button>
+          <Button
+            onClick={() =>
+              signIn('google', { callbackUrl: `https://localhost:3002` })
+            }
+          >
+            Sign in
+          </Button>
         )}
         {status === 'authenticated' && data && (
           <div className="relative" ref={ref}>
