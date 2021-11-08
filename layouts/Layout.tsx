@@ -1,15 +1,24 @@
-import { ComponentProps, ReactNode, useState } from 'react'
+import React, { ComponentProps, ReactNode, useState } from 'react'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
-import { FiGithub, FiLogOut, FiSettings } from 'react-icons/fi'
+import { FiLogOut, FiSettings } from 'react-icons/fi'
 import { Loading } from './Loading'
 import classNames from 'classnames'
 import useOnclickOutside from 'react-cool-onclickoutside'
 import Button from 'shared/components/button/Button'
 import { NavbarLogo } from 'shared/components/NavbarLogo'
-import Link from 'next/link'
 import { CgExtension, CgGlobeAlt } from 'react-icons/cg'
 import { useQuery } from 'shared/hooks/useQuery'
+import Modal from 'shared/components/Modal'
+import { UncontrolledForm } from 'shared/components/form/UncontrolledForm'
+import SubmitButton from 'shared/components/button/SubmitButton'
+import { InputText } from 'shared/components/input/InputText'
+import { object, string } from 'yup'
+import toast from 'react-hot-toast'
+import { RedirectableProviderType } from 'next-auth/providers'
+import { MdAlternateEmail } from 'react-icons/md'
+import { AiOutlineMail } from 'react-icons/ai'
+import { BsGoogle } from 'react-icons/bs'
 
 const DropdownButton = ({
   children,
@@ -40,7 +49,45 @@ export const Layout = ({
   const ref = useOnclickOutside(() => {
     setDropdownOpen(false)
   })
-  const query = useQuery(!!data && 'user', '/api/user')
+  const avatarQuery = useQuery(!!data && 'user', '/api/user')
+
+  //#region Modal
+  const [visible, setVisible] = useState(false)
+  const [emailSent, setEmailSent] = useState(false)
+  const [emailSending, setEmailSending] = useState(false)
+
+  const handleClose = () => {
+    if (!emailSending) {
+      setEmailSent(false)
+      setVisible(false)
+    }
+  }
+
+  const schema = object().shape({
+    email: string().email().required(),
+  })
+
+  const onError = () => {
+    setEmailSending(false)
+    toast.error('Email was not send.')
+  }
+
+  const onSuccess = () => {
+    setEmailSending(false)
+    setEmailSent(true)
+    toast.success('Email was sent')
+  }
+
+  const query = async ({ email }: { email: string }) => {
+    setEmailSending(true)
+    const response = await signIn<RedirectableProviderType>('email', {
+      redirect: false,
+      email,
+    })
+    if (!response || response.error) throw new Error('Login error')
+  }
+
+  //#endregion
 
   if (status === 'loading') return <Loading />
 
@@ -49,34 +96,56 @@ export const Layout = ({
       <div className="bg-white mb-8 p-2 border-b border-gray-200 flex">
         <NavbarLogo />
         <div className="mr-auto" />
-        {status === 'authenticated' && (
-          <div className="hidden sm:flex">
-            <Link href="/plugins" passHref>
-              <div className="flex items-center cursor-pointer py-2 px-3 rounded-xl bg-black bg-opacity-0 hover:bg-opacity-5 focus:bg-opacity-5">
-                <CgExtension className="mr-1.5" size="1.25em" />
-                <span>Plugins</span>
-              </div>
-            </Link>
-            <Link href="/published" passHref>
-              <div className="flex items-center cursor-pointer py-2 px-3 mr-2 rounded-xl bg-black bg-opacity-0 hover:bg-opacity-5 focus:bg-opacity-5">
-                <CgGlobeAlt className="mr-1.5" size="1.25em" />
-                <span>Published</span>
-              </div>
-            </Link>
-          </div>
-        )}
         <div className="ml-auto" />
         {status === 'unauthenticated' && (
-          <Button
-            onClick={() =>
-              signIn('github', {
-                callbackUrl: `${window.location.origin}/plugins`,
-              })
-            }
-          >
-            <FiGithub className="mr-2" />
-            Sign in
-          </Button>
+          <div>
+            <Button
+              onClick={() =>
+                //signIn('google', { callbackUrl: `https://localhost:3002` })
+                setVisible(true)
+              }
+            >
+              Sign in
+            </Button>
+            <Modal visible={visible} close={handleClose}>
+              {emailSent ? (
+                <div className="flex items-center justify-center space-x-2 pb-4">
+                  <AiOutlineMail />
+                  <h2>Check your email inbox</h2>
+                </div>
+              ) : (
+                <div>
+                  <Button
+                    className="mx-auto"
+                    onClick={() =>
+                      signIn('google', {
+                        callbackUrl: `https://localhost:3002`,
+                      })
+                    }
+                  >
+                    <BsGoogle className="-ml-2 mr-2" /> Sign with Google
+                  </Button>
+                  <div className="flex items-center">
+                    <div className="flex-1 w-0.5 h-0.5 rounded-full mx-4 bg-gray-200" />
+                    <p>OR</p>
+                    <div className="flex-1 w-0.5 h-0.5 rounded-full mx-4 bg-gray-200" />
+                  </div>
+                  <UncontrolledForm
+                    {...{ schema, query, onSuccess, onError }}
+                    className="flex"
+                  >
+                    <InputText
+                      type="email"
+                      name="email"
+                      label="Email"
+                      icon={MdAlternateEmail}
+                    />
+                    <SubmitButton className="h-12" />
+                  </UncontrolledForm>
+                </div>
+              )}
+            </Modal>
+          </div>
         )}
         {status === 'authenticated' && data && (
           <div className="relative" ref={ref}>
@@ -85,7 +154,7 @@ export const Layout = ({
               onClick={() => setDropdownOpen(!isDropdownOpen)}
             >
               <img
-                src={query?.data?.image ?? ''}
+                src={avatarQuery?.data?.image ?? ''}
                 className="bg-gray-300 w-8 h-8 rounded-25 shadow-lg"
               />
             </div>
