@@ -130,7 +130,7 @@ const Space = ({
         </Button>
       </div>
       <h1 className="text-2xl font-bold">{name}</h1>
-      <p>{description}</p>
+      <p className="whitespace-pre-wrap">{description}</p>
       <div className="flex mt-12">
         <PluginGrid>
           {plugins.map(({ pluginId, ...size }: PluginBlockItem) => (
