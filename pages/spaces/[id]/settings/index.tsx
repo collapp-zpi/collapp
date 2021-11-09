@@ -134,7 +134,7 @@ const SpaceForm = ({ name, description, icon }: SpaceFormProps) => {
   return (
     <Form {...apiForm} className="flex flex-col">
       <div className="flex flex-col md:flex-row">
-        <InputPhoto name="image" image={icon} />
+        <InputPhoto name="icon" image={icon} />
         <div className="flex-grow flex flex-col">
           <InputText
             name="name"
