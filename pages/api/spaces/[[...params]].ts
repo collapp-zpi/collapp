@@ -28,26 +28,31 @@ class Spaces {
     @Query('limit', ParseNumberPipe({ nullable: true })) limit?: number,
     @Query('page', ParseNumberPipe({ nullable: true })) page?: number,
   ) {
-    return fetchWithPagination(
-      'space',
-      limit,
-      page /*, {
-      authorId: user.id, // TODO: fetch only spaces where is a member
-    }*/,
-    )
+    return fetchWithPagination('space', limit, page, {
+      users: {
+        some: {
+          userId: user.id,
+        },
+      },
+    })
   }
 
   @Get('/:id')
   async getSpace(@Param('id') id: string, @User user: RequestUser) {
     const space = await prisma.space.findFirst({
-      where: { id },
+      where: {
+        id,
+        users: {
+          some: {
+            userId: user.id,
+          },
+        },
+      },
     })
 
     if (!space) {
       throw new NotFoundException('The space does not exist.')
     }
-
-    // TODO: if is a member
 
     return space
   }
