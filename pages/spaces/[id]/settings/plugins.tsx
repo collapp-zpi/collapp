@@ -4,13 +4,17 @@ import { useRouter } from 'next/router'
 import Button from 'shared/components/button/Button'
 import { GoChevronLeft } from 'react-icons/go'
 import { SpaceSettingsButtons } from 'includes/spaces/components/SpaceSettingsButtons'
-import ReactGridLayout from 'react-grid-layout'
+import { Responsive, WidthProvider } from 'react-grid-layout'
 import styled from 'styled-components'
 import { createContext, useContext, useState } from 'react'
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
 import { SpacePlugin, PublishedPlugin } from '@prisma/client'
 
-const BASE = 15
+const SIZES = {
+  xl: 15,
+  md: 10,
+  xs: 5,
+}
 
 interface Plugin extends SpacePlugin {
   plugin: PublishedPlugin
@@ -18,9 +22,9 @@ interface Plugin extends SpacePlugin {
 
 const Tile = styled.div`
   background-color: #e0e0e0;
-  border-radius: ${BASE * 10 * 0.175}px;
-  min-width: ${BASE * 10}px;
-  min-height: ${BASE * 10}px;
+  border-radius: 1.75em;
+  min-width: 10em;
+  min-height: 10em;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -30,14 +34,21 @@ const Tile = styled.div`
 `
 
 const TileImage = styled.img`
-  width: 48px;
-  height: 48px;
-  border-radius: ${BASE * 10 * 0.06}px;
+  width: 3em;
+  height: 3em;
+  border-radius: 0.6em;
 `
 
-const Container = styled.main`
-  width: ${BASE * 5.4 * 10}px;
+const Container = styled.div`
+  width: 54em;
   margin: auto;
+  font-size: 5px;
+  @media (min-width: 768px) {
+    font-size: 10px;
+  }
+  @media (min-width: 1280px) {
+    font-size: 15px;
+  }
 `
 
 export const getServerSideProps = async (
@@ -77,6 +88,8 @@ const PluginRepoContext = createContext<PluginContext>({})
 
 const usePluginData = (id: string) => useContext(PluginRepoContext)[id]
 
+const ResponsiveGridLayout = WidthProvider(Responsive)
+
 const SpacePluginSettings = ({
   plugins,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
@@ -110,6 +123,7 @@ const SpacePluginSettings = ({
   const router = useRouter()
   const pathId = String(router.query.id)
   const id = pathId
+  const [breakpoint, setBreakpoint] = useState('xs')
 
   return (
     <AuthLayout>
@@ -124,24 +138,33 @@ const SpacePluginSettings = ({
         <GoChevronLeft className="mr-2 -ml-2" />
         Back
       </Button>
-      <div className="flex">
+      <div className="flex flex-col md:flex-row">
         <div className="flex flex-col mr-12">
           <SpaceSettingsButtons />
         </div>
-        <div className="flex-grow">
+        <div className="flex-grow mt-8 md:mt-0">
           <div className="bg-white px-8 py-8 rounded-3xl shadow-2xl">
             <PluginRepoContext.Provider value={mapped}>
               <Container>
-                <ReactGridLayout
-                  width={BASE * 5.4 * 10}
-                  cols={5}
-                  margin={[BASE, BASE]}
-                  rowHeight={BASE * 10}
-                  layout={layout}
+                <ResponsiveGridLayout
+                  breakpoints={{ xl: 1280, md: 768, xs: 0 }}
+                  cols={{ xl: 5, md: 5, xs: 5 }}
+                  margin={{
+                    xl: [SIZES.xl, SIZES.xl],
+                    md: [SIZES.md, SIZES.md],
+                    xs: [SIZES.xs, SIZES.xs],
+                  }}
+                  rowHeight={SIZES[breakpoint] * 10}
+                  layouts={{
+                    xl: layout,
+                    md: layout,
+                    xs: layout,
+                  }}
                   onLayoutChange={(data) => setLayout(data)}
+                  onBreakpointChange={(b) => setBreakpoint(b)}
                 >
                   {layout.map(generateItem)}
-                </ReactGridLayout>
+                </ResponsiveGridLayout>
               </Container>
             </PluginRepoContext.Provider>
           </div>
