@@ -21,7 +21,7 @@ export class UpdateUserDTO {
 class UserSettings {
   @Get()
   getUser(@User user: RequestUser) {
-    return prisma.developerUser.findFirst({
+    return prisma.regularUser.findFirst({
       where: {
         id: user.id,
       },
@@ -38,7 +38,7 @@ class UserSettings {
       // throw new BadRequestException('Image test')
     }
 
-    return await prisma.developerUser.update({
+    return await prisma.regularUser.update({
       where: { id: user.id },
       data: { ...body },
     })
