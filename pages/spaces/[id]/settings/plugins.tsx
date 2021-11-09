@@ -7,8 +7,14 @@ import { SpaceSettingsButtons } from 'includes/spaces/components/SpaceSettingsBu
 import ReactGridLayout from 'react-grid-layout'
 import styled from 'styled-components'
 import { useState } from 'react'
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
+import { SpacePlugin, PublishedPlugin } from '@prisma/client'
 
 const BASE = 15
+
+interface Plugin extends SpacePlugin {
+  plugin: PublishedPlugin
+}
 
 const Tile = styled.div`
   background-color: #e0e0e0;
@@ -36,62 +42,71 @@ const Container = styled.main`
   margin: auto;
 `
 
-const INITIAL_DATA = [
-  {
-    i: 'To-do list',
-    x: 0,
-    y: 0,
-    w: 2,
-    h: 3,
-  },
-  {
-    i: 'Calendar',
-    x: 2,
-    y: 0,
-    w: 1,
-    h: 1,
-    maxW: 1,
-    maxH: 1,
-  },
-  {
-    i: 'Weather',
-    x: 3,
-    y: 0,
-    w: 2,
-    h: 1,
-  },
-  {
-    i: 'Agenda',
-    x: 2,
-    y: 1,
-    w: 3,
-    h: 2,
-  },
-  {
-    i: 'Chat',
-    x: 0,
-    y: 3,
-    w: 4,
-    h: 3,
-  },
-  {
-    i: 'Quick link',
-    x: 4,
-    y: 3,
-    w: 1,
-    h: 1,
-  },
-  {
-    i: 'Photo a day',
-    x: 4,
-    y: 4,
-    w: 1,
-    h: 2,
-  },
-]
+export const getServerSideProps = async (
+  context: GetServerSidePropsContext,
+) => {
+  const { id } = context.query
+  const res = await fetch(`${process.env.BASE_URL}/api/plugins/space/${id}`, {
+    method: 'GET',
+    headers: {
+      ...(context?.req?.headers?.cookie && {
+        cookie: context.req.headers.cookie,
+      }),
+    },
+  })
 
-const SpacePluginSettings = () => {
-  const [layout, setLayout] = useState(INITIAL_DATA)
+  if (!res.ok) {
+    return {
+      props: {
+        error: await res.json(),
+        isError: true,
+      },
+    }
+  }
+
+  const plugins: Plugin[] = await res.json()
+
+  return {
+    props: { plugins },
+  }
+}
+
+// interface PluginContext {
+//   [key: string]: { name: string; icon: string | null }
+// }
+//
+// const PluginRepoContext = createContext<PluginContext>({})
+
+const SpacePluginSettings = ({
+  plugins,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+  // const [mapped, setMapped] = useState(() => {
+  //   const mapped: PluginContext = {}
+  //
+  //   for (const { pluginId, plugin } of plugins) {
+  //     mapped[pluginId] = {
+  //       name: plugin.name,
+  //       icon: plugin.icon,
+  //     }
+  //   }
+  //
+  //   return mapped
+  // })
+
+  const [layout, setLayout] = useState(() => {
+    return plugins.map(({ pluginId, width, height, left, top, plugin }) => ({
+      i: pluginId,
+      x: left,
+      y: top,
+      w: width,
+      h: height,
+      minW: plugin.minWidth,
+      maxW: plugin.maxWidth,
+      minH: plugin.minHeight,
+      maxH: plugin.maxHeight,
+    }))
+  })
+
   const router = useRouter()
   const pathId = String(router.query.id)
   const id = pathId
@@ -136,11 +151,9 @@ const SpacePluginSettings = () => {
 
 export default SpacePluginSettings
 
-const generateItem = (data) => {
-  return (
-    <Tile data-grid={data} key={data.i}>
-      <div />
-      {data.i}
-    </Tile>
-  )
-}
+const generateItem = (data) => (
+  <Tile key={data.i}>
+    <div />
+    {data.i}
+  </Tile>
+)
