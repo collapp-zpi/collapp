@@ -10,15 +10,16 @@ import { Loading } from 'layouts/Loading'
 import useApiForm, { withFallback } from 'shared/hooks/useApiForm'
 import { useSWRConfig } from 'swr'
 import { toast } from 'react-hot-toast'
-import Form from '../../../../shared/components/form/Form'
-import { InputPhoto } from '../../../../shared/components/input/InputPhoto'
-import { InputText } from '../../../../shared/components/input/InputText'
+import Form from 'shared/components/form/Form'
+import { InputPhoto } from 'shared/components/input/InputPhoto'
+import { InputText } from 'shared/components/input/InputText'
 import { BiText } from 'react-icons/bi'
-import SubmitButton from '../../../../shared/components/button/SubmitButton'
+import SubmitButton from 'shared/components/button/SubmitButton'
 import { object, string } from 'yup'
-import { updateSpace } from '../../../../includes/spaces/endpoints'
-import { InputTextarea } from '../../../../shared/components/input/InputTextarea'
+import { updateSpace } from 'includes/spaces/endpoints'
+import { InputTextarea } from 'shared/components/input/InputTextarea'
 import { FiAlignCenter } from 'react-icons/fi'
+import { SpaceSettingsButtons } from 'includes/spaces/components/SpaceSettingsButtons'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.query
@@ -83,11 +84,15 @@ const SpaceSettings = ({
         <GoChevronLeft className="mr-2 -ml-2" />
         Back
       </Button>
-      <div className="bg-white px-8 py-8 rounded-3xl shadow-2xl">
-        <h1 className="text-2xl font-bold text-gray-500 mb-4">
-          Space settings
-        </h1>
-        <SpaceForm {...{ name, description, icon }} />
+      <div className="flex">
+        <div className="flex flex-col mr-12">
+          <SpaceSettingsButtons />
+        </div>
+        <div className="flex-grow">
+          <div className="bg-white px-8 py-8 rounded-3xl shadow-2xl">
+            <SpaceForm {...{ name, description, icon }} />
+          </div>
+        </div>
       </div>
     </AuthLayout>
   )
