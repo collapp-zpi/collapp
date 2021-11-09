@@ -1,8 +1,12 @@
 import { useFilters } from 'shared/hooks/useFilters'
-import useSWR from 'swr'
+import useSWR, { SWRConfiguration } from 'swr'
 import { generateKey } from 'shared/utils/object'
 
-export const useQuery = (key: string[] | string | false, path: string) => {
+export const useQuery = (
+  key: string[] | string | false,
+  path: string,
+  options?: SWRConfiguration,
+) => {
   const [filters] = useFilters()
   const filteredSearch = Object.entries(filters).reduce(
     (acc, [key, value]) => (value == null ? acc : { ...acc, [key]: value }),
@@ -12,7 +16,9 @@ export const useQuery = (key: string[] | string | false, path: string) => {
 
   const origin = typeof window !== 'undefined' ? window.location.origin : ''
 
-  return useSWR(key ? generateKey(key, filters) : null, () =>
-    fetch(`${origin}${path}?` + search).then((res) => res.json()),
+  return useSWR(
+    key ? generateKey(key, filters) : null,
+    () => fetch(`${origin}${path}?` + search).then((res) => res.json()),
+    options,
   )
 }
