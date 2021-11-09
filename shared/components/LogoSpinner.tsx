@@ -1,5 +1,7 @@
-export const LogoSpinner = () => (
-  <div className="relative m-auto w-16 h-16">
+import classNames from 'classnames'
+
+export const LogoSpinner = ({ size = 'w-16 h-16' }) => (
+  <div className={classNames('relative m-auto', size)}>
     <svg
       className="w-full h-full absolute left-0 top-0 spinner-path"
       viewBox="0 0 500 500"

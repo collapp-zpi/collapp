@@ -6,9 +6,17 @@ import { GoChevronLeft } from 'react-icons/go'
 import { SpaceSettingsButtons } from 'includes/spaces/components/SpaceSettingsButtons'
 import GridLayout, { WidthProvider } from 'react-grid-layout'
 import styled from 'styled-components'
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
 import { PublishedPlugin, SpacePlugin } from '@prisma/client'
+import { withFilters } from 'shared/hooks/useFilters'
+import { useQuery } from 'shared/hooks/useQuery'
+import { object, string } from 'yup'
+import { AiOutlineSearch } from 'react-icons/ai'
+import { InputText } from 'shared/components/input/InputText'
+import { FiltersForm } from 'shared/components/form/FiltersForm'
+import { LogoSpinner } from 'shared/components/LogoSpinner'
+import { FiPlus } from 'react-icons/fi'
 
 interface Plugin extends SpacePlugin {
   plugin: PublishedPlugin
@@ -139,6 +147,7 @@ const SpacePluginSettings = ({
       <div className="flex flex-col md:flex-row">
         <div className="flex flex-col mr-12">
           <SpaceSettingsButtons />
+          <PluginList {...{ mapped, setMapped, setLayout }} />
         </div>
         <div className="flex-grow mt-8 md:mt-0">
           <div className="bg-white px-1 py-2 rounded-3xl shadow-2xl">
@@ -183,3 +192,88 @@ const Item = ({ id }) => {
     </>
   )
 }
+
+const filtersSchema = object().shape({
+  name: string().default(''),
+})
+
+const PluginList = withFilters(
+  function InnerPluginList({ mapped, setMapped, setLayout }) {
+    const { data } = useQuery('plugins', '/api/plugins')
+
+    const handleAddPlugin = (plugin: PublishedPlugin) => () => {
+      setMapped((mapped) => ({
+        ...mapped,
+        [plugin.id]: {
+          name: plugin.name,
+          icon: plugin.icon,
+        },
+      }))
+      setLayout((layout) => [
+        ...layout,
+        {
+          i: plugin.id,
+          y: Infinity,
+          x: 0,
+          w: plugin.minWidth,
+          h: plugin.minHeight,
+        },
+      ])
+    }
+
+    const items = useMemo(
+      () =>
+        !data?.entities
+          ? []
+          : data.entities.filter(({ id }: PublishedPlugin) => !mapped?.[id]),
+      [data?.entities, mapped],
+    )
+
+    return (
+      <div className="bg-white p-4 rounded-3xl shadow-2xl mt-4 sticky top-4">
+        <FiltersForm schema={filtersSchema}>
+          <InputText icon={AiOutlineSearch} name="name" label="Plugin name" />
+        </FiltersForm>
+        <div className="mt-2">
+          {!data && (
+            <div className="text-center p-4 flex items-center justify-center">
+              <LogoSpinner size="w-8 h-7" />
+            </div>
+          )}
+          {!!data && !items.length && (
+            <div className="text-center mt-4 text-gray-400">
+              No plugins found
+            </div>
+          )}
+        </div>
+        <div className="max-h-96 overflow-y-auto flex flex-col">
+          {!!data &&
+            !!items.length &&
+            items.map((plugin: PublishedPlugin) => (
+              <div key={plugin.id} className="flex p-2 items-center">
+                <img src={plugin.icon} className="w-10 h-10 rounded-25 mr-2" />
+                <div className="flex flex-col w-100 flex-grow">
+                  <div className="font-bold leading-tight">{plugin.name}</div>
+                  {!!plugin.description && (
+                    <div className="w-100 h-3 relative">
+                      <div className="truncate text-xs text-gray-400 whitespace-nowrap absolute w-100">
+                        {plugin.description}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div
+                  className="p-2 ml-2 bg-gray-100 cursor-pointer hover:bg-gray-200 transition-colors rounded-xl"
+                  onClick={handleAddPlugin(plugin)}
+                >
+                  <FiPlus />
+                </div>
+              </div>
+            ))}
+        </div>
+      </div>
+    )
+  },
+  [],
+  { name: '', limit: '20' },
+)
