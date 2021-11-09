@@ -6,18 +6,29 @@ import {
   NotFoundException,
   Param,
   ParseNumberPipe,
+  Patch,
   Post,
   Query,
   ValidationPipe,
 } from '@storyofams/next-api-decorators'
 import { NextAuthGuard, RequestUser, User } from 'shared/utils/apiDecorators'
-import { IsNotEmpty } from 'class-validator'
+import { IsNotEmpty, IsOptional, NotEquals } from 'class-validator'
 import { fetchWithPagination } from 'shared/utils/fetchWithPagination'
 
 export class CreateSpaceDTO {
   @IsNotEmpty({ message: 'Space name is required.' })
   name!: string
   description!: string
+}
+
+export class UpdateSpaceDTO {
+  @IsOptional()
+  @NotEquals('', { message: 'Space name is required.' })
+  name?: string
+  @IsOptional()
+  description?: string
+  @IsOptional()
+  icon?: string
 }
 
 @NextAuthGuard()
@@ -93,6 +104,33 @@ class Spaces {
           ],
         },
       },
+    })
+  }
+
+  @Patch('/:id')
+  async updateSpace(
+    @Param('id') id: string,
+    @Body(ValidationPipe) body: UpdateSpaceDTO,
+    @User user: RequestUser,
+  ) {
+    const space = await prisma.space.findFirst({
+      where: {
+        id,
+        users: {
+          some: {
+            userId: user.id,
+          },
+        },
+      },
+    })
+
+    if (!space) {
+      throw new NotFoundException('The space does not exist.')
+    }
+
+    return await prisma.space.update({
+      where: { id },
+      data: { ...body },
     })
   }
 }

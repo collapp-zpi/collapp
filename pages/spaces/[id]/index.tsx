@@ -10,6 +10,7 @@ import { Loading } from 'layouts/Loading'
 import { withFallback } from 'shared/hooks/useApiForm'
 import styled from 'styled-components'
 import { ReactNode } from 'react'
+import { FiSettings } from 'react-icons/fi'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.query
@@ -71,7 +72,7 @@ const PluginBlock = ({
   height,
 }: PluginBlockProps) => (
   <div
-    className="bg-white rounded-3xl shadow-2xl overflow-hidden"
+    className="rounded-3xl shadow-2xl overflow-hidden"
     style={{
       borderRadius: 35,
       gridColumnStart: left + 1,
@@ -91,9 +92,7 @@ const Space = ({
   const pathId = String(router.query.id)
   const { data } = useQuery(['space', pathId], `/api/spaces/${pathId}`)
 
-  console.log(data)
-
-  const { name, description, plugins } = data || {}
+  const { id, name, description, plugins } = data || {}
 
   if (props?.isError) {
     return <div>error hello</div>
@@ -112,17 +111,27 @@ const Space = ({
       <Head>
         <title>Space</title>
       </Head>
-      <Button
-        color="light"
-        onClick={() => router.push('/spaces')}
-        className="mb-4"
-      >
-        <GoChevronLeft className="mr-2 -ml-2" />
-        Back
-      </Button>
-      <h1>{name}</h1>
+      <div className="flex justify-between">
+        <Button
+          color="light"
+          onClick={() => router.push('/spaces')}
+          className="mb-4"
+        >
+          <GoChevronLeft className="mr-2 -ml-2" />
+          Back
+        </Button>
+        <Button
+          color="light"
+          onClick={() => router.push(`/spaces/${id}/settings`)}
+          className="mb-4"
+        >
+          <FiSettings className="mr-2 -ml-2" />
+          Settings
+        </Button>
+      </div>
+      <h1 className="text-2xl font-bold">{name}</h1>
       <p>{description}</p>
-      <div className="flex mt-4">
+      <div className="flex mt-12">
         <PluginGrid>
           {plugins.map(({ pluginId, ...size }: PluginBlockItem) => (
             <PluginBlock key={pluginId} {...size}>
