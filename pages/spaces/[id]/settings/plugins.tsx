@@ -6,7 +6,7 @@ import { GoChevronLeft } from 'react-icons/go'
 import { SpaceSettingsButtons } from 'includes/spaces/components/SpaceSettingsButtons'
 import ReactGridLayout from 'react-grid-layout'
 import styled from 'styled-components'
-import { useState } from 'react'
+import { createContext, useContext, useState } from 'react'
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
 import { SpacePlugin, PublishedPlugin } from '@prisma/client'
 
@@ -27,14 +27,12 @@ const Tile = styled.div`
   align-items: center;
   font-size: 1em;
   font-weight: 600;
+`
 
-  > div {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: #c5c5c5;
-    margin-bottom: 6px;
-  }
+const TileImage = styled.img`
+  width: 48px;
+  height: 48px;
+  border-radius: ${BASE * 10 * 0.06}px;
 `
 
 const Container = styled.main`
@@ -71,27 +69,29 @@ export const getServerSideProps = async (
   }
 }
 
-// interface PluginContext {
-//   [key: string]: { name: string; icon: string | null }
-// }
-//
-// const PluginRepoContext = createContext<PluginContext>({})
+interface PluginContext {
+  [key: string]: { name: string; icon: string | null }
+}
+
+const PluginRepoContext = createContext<PluginContext>({})
+
+const usePluginData = (id: string) => useContext(PluginRepoContext)[id]
 
 const SpacePluginSettings = ({
   plugins,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
-  // const [mapped, setMapped] = useState(() => {
-  //   const mapped: PluginContext = {}
-  //
-  //   for (const { pluginId, plugin } of plugins) {
-  //     mapped[pluginId] = {
-  //       name: plugin.name,
-  //       icon: plugin.icon,
-  //     }
-  //   }
-  //
-  //   return mapped
-  // })
+  const [mapped, setMapped] = useState(() => {
+    const mapped: PluginContext = {}
+
+    for (const { pluginId, plugin } of plugins) {
+      mapped[pluginId] = {
+        name: plugin.name,
+        icon: plugin.icon,
+      }
+    }
+
+    return mapped
+  })
 
   const [layout, setLayout] = useState(() => {
     return plugins.map(({ pluginId, width, height, left, top, plugin }) => ({
@@ -130,18 +130,20 @@ const SpacePluginSettings = ({
         </div>
         <div className="flex-grow">
           <div className="bg-white px-8 py-8 rounded-3xl shadow-2xl">
-            <Container>
-              <ReactGridLayout
-                width={BASE * 5.4 * 10}
-                cols={5}
-                margin={[BASE, BASE]}
-                rowHeight={BASE * 10}
-                layout={layout}
-                onLayoutChange={(data) => setLayout(data)}
-              >
-                {layout.map(generateItem)}
-              </ReactGridLayout>
-            </Container>
+            <PluginRepoContext.Provider value={mapped}>
+              <Container>
+                <ReactGridLayout
+                  width={BASE * 5.4 * 10}
+                  cols={5}
+                  margin={[BASE, BASE]}
+                  rowHeight={BASE * 10}
+                  layout={layout}
+                  onLayoutChange={(data) => setLayout(data)}
+                >
+                  {layout.map(generateItem)}
+                </ReactGridLayout>
+              </Container>
+            </PluginRepoContext.Provider>
           </div>
         </div>
       </div>
@@ -153,7 +155,17 @@ export default SpacePluginSettings
 
 const generateItem = (data) => (
   <Tile key={data.i}>
-    <div />
-    {data.i}
+    <Item id={data.i} />
   </Tile>
 )
+
+const Item = ({ id }) => {
+  const data = usePluginData(id)
+
+  return (
+    <>
+      <TileImage src={data?.icon} className="mb-2" />
+      {data?.name}
+    </>
+  )
+}
