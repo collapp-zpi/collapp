@@ -8,6 +8,8 @@ import { generateKey } from 'shared/utils/object'
 import { useQuery } from 'shared/hooks/useQuery'
 import { Loading } from 'layouts/Loading'
 import { withFallback } from 'shared/hooks/useApiForm'
+import styled from 'styled-components'
+import { ReactNode } from 'react'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.query
@@ -38,6 +40,50 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 }
 
+const PluginGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(5, 200px);
+  grid-auto-rows: 200px;
+  gap: 20px;
+  margin: auto;
+`
+
+interface PluginBlockSize {
+  top: number
+  left: number
+  width: number
+  height: number
+}
+
+interface PluginBlockProps extends PluginBlockSize {
+  children: ReactNode
+}
+
+interface PluginBlockItem extends PluginBlockSize {
+  pluginId: string
+}
+
+const PluginBlock = ({
+  children,
+  top,
+  left,
+  width,
+  height,
+}: PluginBlockProps) => (
+  <div
+    className="bg-white rounded-3xl shadow-2xl overflow-hidden"
+    style={{
+      borderRadius: 35,
+      gridColumnStart: left + 1,
+      gridColumnEnd: `span ${width}`,
+      gridRowStart: top + 1,
+      gridRowEnd: `span ${height}`,
+    }}
+  >
+    {children}
+  </div>
+)
+
 const Space = ({
   props,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
@@ -45,7 +91,9 @@ const Space = ({
   const pathId = String(router.query.id)
   const { data } = useQuery(['space', pathId], `/api/spaces/${pathId}`)
 
-  const { name, description, icon } = data || {}
+  console.log(data)
+
+  const { name, description, plugins } = data || {}
 
   if (props?.isError) {
     return <div>error hello</div>
@@ -74,6 +122,15 @@ const Space = ({
       </Button>
       <h1>{name}</h1>
       <p>{description}</p>
+      <div className="flex mt-4">
+        <PluginGrid>
+          {plugins.map(({ pluginId, ...size }: PluginBlockItem) => (
+            <PluginBlock key={pluginId} {...size}>
+              {pluginId}
+            </PluginBlock>
+          ))}
+        </PluginGrid>
+      </div>
     </AuthLayout>
   )
 }

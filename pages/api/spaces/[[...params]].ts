@@ -40,6 +40,17 @@ class Spaces {
   @Get('/:id')
   async getSpace(@Param('id') id: string, @User user: RequestUser) {
     const space = await prisma.space.findFirst({
+      include: {
+        plugins: {
+          select: {
+            pluginId: true,
+            height: true,
+            width: true,
+            top: true,
+            left: true,
+          },
+        },
+      },
       where: {
         id,
         users: {
