@@ -141,7 +141,7 @@ const SpacePluginSettings = ({
           <SpaceSettingsButtons />
         </div>
         <div className="flex-grow mt-8 md:mt-0">
-          <div className="bg-white px-8 py-8 rounded-3xl shadow-2xl">
+          <div className="bg-white px-1 py-2 rounded-3xl shadow-2xl">
             <PluginRepoContext.Provider value={mapped}>
               <Grid>
                 {(size) => (
