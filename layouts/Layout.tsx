@@ -7,7 +7,7 @@ import classNames from 'classnames'
 import useOnclickOutside from 'react-cool-onclickoutside'
 import Button from 'shared/components/button/Button'
 import { NavbarLogo } from 'shared/components/NavbarLogo'
-import { CgExtension, CgGlobeAlt } from 'react-icons/cg'
+import { CgExtension } from 'react-icons/cg'
 import { useQuery } from 'shared/hooks/useQuery'
 import Modal from 'shared/components/Modal'
 import { UncontrolledForm } from 'shared/components/form/UncontrolledForm'
@@ -19,6 +19,7 @@ import { RedirectableProviderType } from 'next-auth/providers'
 import { MdAlternateEmail } from 'react-icons/md'
 import { AiOutlineMail } from 'react-icons/ai'
 import { BsGoogle } from 'react-icons/bs'
+import Link from 'next/link'
 
 const DropdownButton = ({
   children,
@@ -96,6 +97,16 @@ export const Layout = ({
       <div className="bg-white mb-8 p-2 border-b border-gray-200 flex">
         <NavbarLogo />
         <div className="mr-auto" />
+        {status === 'authenticated' && (
+          <div className="hidden sm:flex">
+            <Link href="/spaces" passHref>
+              <div className="flex items-center cursor-pointer py-2 px-3 rounded-xl bg-black bg-opacity-0 hover:bg-opacity-5 focus:bg-opacity-5">
+                <CgExtension className="mr-1.5" size="1.25em" />
+                <span>Spaces</span>
+              </div>
+            </Link>
+          </div>
+        )}
         <div className="ml-auto" />
         {status === 'unauthenticated' && (
           <div>
@@ -169,14 +180,7 @@ export const Layout = ({
                 onClick={() => router.push('/plugins')}
               >
                 <CgExtension size="1rem" className="mr-2" />
-                <span>Plugins</span>
-              </DropdownButton>
-              <DropdownButton
-                className="sm:hidden"
-                onClick={() => router.push('/published')}
-              >
-                <CgGlobeAlt size="1rem" className="mr-2" />
-                <span>Published</span>
+                <span>Spaces</span>
               </DropdownButton>
               <DropdownButton onClick={() => router.push('/settings')}>
                 <FiSettings className="mr-2" />
