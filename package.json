@@ -45,6 +45,7 @@
     "react-range": "^1.8.11",
     "react-select": "^5.1.0",
     "react-textarea-autosize": "^8.3.3",
+    "react-tippy": "^1.4.0",
     "styled-components": "^5.3.1",
     "swr": "^1.0.1",
     "tailwindcss": "^2.2.17",

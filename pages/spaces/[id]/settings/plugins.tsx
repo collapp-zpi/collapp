@@ -17,6 +17,7 @@ import { InputText } from 'shared/components/input/InputText'
 import { FiltersForm } from 'shared/components/form/FiltersForm'
 import { LogoSpinner } from 'shared/components/LogoSpinner'
 import { FiPlus, FiTrash2 } from 'react-icons/fi'
+import { Tooltip } from 'shared/components/Tooltip'
 
 interface Plugin extends SpacePlugin {
   plugin: PublishedPlugin
@@ -260,29 +261,37 @@ const PluginList = withFilters(
               <div key={plugin.id} className="flex p-2 items-center">
                 <img src={plugin.icon} className="w-10 h-10 rounded-25 mr-2" />
                 <div className="flex flex-col w-100 flex-grow">
-                  <div className="font-bold leading-tight">{plugin.name}</div>
+                  <div className="w-full h-4 mb-1 relative">
+                    <div className="truncate font-bold whitespace-nowrap absolute w-full">
+                      {plugin.name}
+                    </div>
+                  </div>
                   {!!plugin.description && (
-                    <div className="w-100 h-3 relative">
-                      <div className="truncate text-xs text-gray-400 whitespace-nowrap absolute w-100">
+                    <div className="w-full h-4 relative">
+                      <div className="truncate text-xs text-gray-400 whitespace-nowrap absolute w-full">
                         {plugin.description}
                       </div>
                     </div>
                   )}
                 </div>
                 {!mapped?.[plugin.id] ? (
-                  <div
-                    className="p-2 ml-2 bg-blue-50 text-blue-400 cursor-pointer hover:bg-blue-500 hover:text-white transition-colors rounded-xl"
-                    onClick={handleAddPlugin(plugin)}
-                  >
-                    <FiPlus />
-                  </div>
+                  <Tooltip value="Add">
+                    <div
+                      className="p-2 ml-2 bg-blue-50 text-blue-400 cursor-pointer hover:bg-blue-500 hover:text-white transition-colors rounded-xl"
+                      onClick={handleAddPlugin(plugin)}
+                    >
+                      <FiPlus />
+                    </div>
+                  </Tooltip>
                 ) : (
-                  <div
-                    className="p-2 ml-2 bg-red-50 text-red-400 cursor-pointer hover:bg-red-500 hover:text-white transition-colors rounded-xl"
-                    onClick={handleDeletePlugin(plugin)}
-                  >
-                    <FiTrash2 />
-                  </div>
+                  <Tooltip value="Delete">
+                    <div
+                      className="p-2 ml-2 bg-red-50 text-red-400 cursor-pointer hover:bg-red-500 hover:text-white transition-colors rounded-xl"
+                      onClick={handleDeletePlugin(plugin)}
+                    >
+                      <FiTrash2 />
+                    </div>
+                  </Tooltip>
                 )}
               </div>
             ))}
