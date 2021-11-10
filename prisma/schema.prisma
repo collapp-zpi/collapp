@@ -230,7 +230,7 @@ model Space {
 model Invite {
   id          String           @id @default(cuid())
   createdAt   DateTime         @default(now())
-  expiresAt   DateTime         
+  expiresAt   DateTime?         
 
   space       Space            @relation(fields: [spaceId], references: [id])
   spaceId     String
