@@ -82,7 +82,7 @@ export const InputRangeFrame = ({
 type PureInputRangeProps = {
   values: number[]
   onFinalChange?: (values: number[]) => void
-  onChange: (values: number[]) => void
+  onChange?: (values: number[]) => void
   min?: number
   max: number
   step?: number
@@ -91,7 +91,16 @@ type PureInputRangeProps = {
 
 export const PureInputRange = forwardRef<Range, PureInputRangeProps>(
   function InnerPureInput(
-    { values, min = 0, max, onChange, onFinalChange, step, disabled, ...props },
+    {
+      values,
+      min = 0,
+      max,
+      onChange = () => undefined,
+      onFinalChange,
+      step,
+      disabled,
+      ...props
+    },
     ref,
   ) {
     return (

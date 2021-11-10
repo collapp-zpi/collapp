@@ -5,10 +5,12 @@ const Modal = ({
   visible,
   close,
   children,
+  className,
 }: {
   visible: boolean
   close?: () => void
   children: ReactNode
+  className?: string
 }) => (
   <div
     className={classNames(
@@ -20,7 +22,12 @@ const Modal = ({
       className="absolute left-0 top-0 w-full h-full bg-black opacity-50"
       onClick={() => close?.()}
     />
-    <div className="bg-white p-4 z-10 rounded-3xl shadow-lg max-w-lg mx-4">
+    <div
+      className={classNames(
+        'bg-white p-4 z-10 rounded-3xl shadow-lg max-w-lg mx-4',
+        className,
+      )}
+    >
       {children}
     </div>
   </div>

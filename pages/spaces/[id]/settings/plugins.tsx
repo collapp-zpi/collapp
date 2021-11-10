@@ -23,6 +23,10 @@ import { updateSpacePlugins } from 'includes/spaces/endpoints'
 import { CgSpinner } from 'react-icons/cg'
 import { toast } from 'react-hot-toast'
 import Modal from 'shared/components/Modal'
+import {
+  InputRangeFrame,
+  PureInputRange,
+} from 'shared/components/input/InputRange'
 
 interface Plugin extends SpacePlugin {
   plugin: PublishedPlugin
@@ -39,7 +43,7 @@ const Tile = styled.div`
   font-weight: 600;
 
   &:hover .react-resizable-handle {
-    opacity: 1;
+    opacity: 0.75;
   }
 `
 
@@ -254,7 +258,8 @@ const QUERY_WINDOW = 30
 const PluginList = withFilters(
   function InnerPluginList({ mapped, setMapped, setLayout }) {
     const { data } = useQuery('plugins', '/api/plugins')
-    const [modal, setModal] = useState(null)
+    const [deleteModal, setDeleteModal] = useState<string | null>(null)
+    const [infoModal, setInfoModal] = useState({ open: false, id: null })
     const [filters, setFilters] = useFilters()
 
     const handleLoadMore = () => {
@@ -286,7 +291,7 @@ const PluginList = withFilters(
     }
 
     const handleDeletePlugin = (pluginId: string) => () => {
-      setModal(null)
+      setDeleteModal(null)
       const plugin = mapped?.[pluginId]
       if (!plugin) return
 
@@ -319,24 +324,29 @@ const PluginList = withFilters(
             {!!data &&
               !!data?.entities?.length &&
               data.entities.map((plugin: PublishedPlugin) => (
-                <div key={plugin.id} className="flex p-2 items-center">
-                  <img
-                    src={plugin.icon}
-                    className="w-10 h-10 rounded-25 mr-2"
-                  />
-                  <div className="flex flex-col w-100 flex-grow">
-                    <div className="w-full h-4 mb-1 relative">
-                      <div className="truncate font-bold whitespace-nowrap absolute w-full">
-                        {plugin.name}
-                      </div>
-                    </div>
-                    {!!plugin.description && (
-                      <div className="w-full h-4 relative">
-                        <div className="truncate text-xs text-gray-400 whitespace-nowrap absolute w-full">
-                          {plugin.description}
+                <div key={plugin.id} className="flex items-center">
+                  <div
+                    className="flex items-center p-2 rounded-xl hover:bg-gray-200 flex-grow transition-colors cursor-pointer"
+                    onClick={() => setInfoModal({ open: true, id: plugin.id })}
+                  >
+                    <img
+                      src={plugin.icon}
+                      className="w-10 h-10 rounded-25 mr-2"
+                    />
+                    <div className="flex flex-col w-100 flex-grow">
+                      <div className="w-full h-4 mb-1 relative">
+                        <div className="truncate font-bold whitespace-nowrap absolute w-full">
+                          {plugin.name}
                         </div>
                       </div>
-                    )}
+                      {!!plugin.description && (
+                        <div className="w-full h-4 relative">
+                          <div className="truncate text-xs text-gray-400 whitespace-nowrap absolute w-full">
+                            {plugin.description}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   {!mapped?.[plugin.id] ? (
                     <Tooltip value="Add">
@@ -351,7 +361,7 @@ const PluginList = withFilters(
                     <Tooltip value="Delete">
                       <div
                         className="p-2 ml-2 bg-red-50 text-red-400 cursor-pointer hover:bg-red-500 hover:text-white transition-colors rounded-xl"
-                        onClick={() => setModal(plugin.id)}
+                        onClick={() => setDeleteModal(plugin.id)}
                       >
                         <FiTrash2 />
                       </div>
@@ -371,7 +381,15 @@ const PluginList = withFilters(
               )}
           </div>
         </div>
-        <Modal visible={modal != null} close={() => setModal(null)}>
+        <PluginInfoModal
+          id={infoModal.id}
+          open={infoModal.open}
+          close={() => setInfoModal({ open: false, id: infoModal.id })}
+          isAdded={!!infoModal?.id && !!mapped?.[infoModal.id]}
+          handleAdd={handleAddPlugin}
+          handleDelete={setDeleteModal}
+        />
+        <Modal visible={deleteModal != null} close={() => setDeleteModal(null)}>
           <div className="p-4">
             <h1 className="text-2xl font-bold text-red-500">Caution!</h1>
             <p>
@@ -380,14 +398,14 @@ const PluginList = withFilters(
             </p>
             <div className="flex mt-6">
               <Button
-                onClick={() => setModal(null)}
+                onClick={() => setDeleteModal(null)}
                 className="ml-auto"
                 color="light"
               >
                 Cancel
               </Button>
               <Button
-                onClick={handleDeletePlugin(modal)}
+                onClick={handleDeletePlugin(deleteModal)}
                 className="ml-2"
                 color="red"
               >
@@ -402,3 +420,100 @@ const PluginList = withFilters(
   [],
   { name: '', limit: `${QUERY_WINDOW}` },
 )
+
+interface PluginInfoModalProps {
+  id: string | null
+  open: boolean
+  close: () => void
+  isAdded: boolean
+  handleAdd: (plugin: PublishedPlugin) => () => void
+  handleDelete: (id: string) => void
+}
+
+const PluginInfoModal = ({
+  id,
+  open,
+  close,
+  isAdded,
+  handleAdd,
+  handleDelete,
+}: PluginInfoModalProps) => {
+  const { data } = useQuery(!!id && ['plugins', id], `/api/plugins/${id}`)
+
+  if (!data)
+    return (
+      <Modal visible={open} close={close} className="max-w-screen-sm w-full">
+        <div className="m-12">
+          <LogoSpinner />
+        </div>
+      </Modal>
+    )
+
+  const {
+    name,
+    author,
+    description,
+    icon,
+    minWidth,
+    maxWidth,
+    minHeight,
+    maxHeight,
+  } = data
+
+  return (
+    <Modal visible={open} close={close} className="max-w-screen-sm w-full">
+      <div className="flex flex-col p-4">
+        <div className="flex items-center">
+          <img src={icon} className="w-16 h-16 rounded-25 mr-4" />
+          <div className="flex-grow flex flex-col">
+            <div className="font-bold text-2xl">{name}</div>
+            <div className="text-gray-400">{author?.name}</div>
+          </div>
+          {isAdded ? (
+            <Button color="red-link" onClick={() => handleDelete(data.id)}>
+              Delete
+            </Button>
+          ) : (
+            <Button color="blue-link" onClick={handleAdd(data)}>
+              Add
+            </Button>
+          )}
+        </div>
+        <p className="mt-4">{description}</p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          <InputRangeFrame
+            className="mt-2"
+            label="Width"
+            display={
+              minWidth === maxWidth ? minWidth : `${minWidth} - ${maxWidth}`
+            }
+          >
+            <PureInputRange
+              values={[minWidth, maxWidth]}
+              min={1}
+              max={4}
+              disabled={true}
+            />
+          </InputRangeFrame>
+          <InputRangeFrame
+            className="mt-2"
+            label="Height"
+            display={
+              minHeight === maxHeight
+                ? minHeight
+                : `${minHeight} - ${maxHeight}`
+            }
+          >
+            <PureInputRange
+              values={[minHeight, maxHeight]}
+              min={1}
+              max={4}
+              disabled={true}
+            />
+          </InputRangeFrame>
+        </div>
+      </div>
+    </Modal>
+  )
+}

@@ -54,6 +54,13 @@ class Plugins {
   async getPlugins(@Param('id') id: string) {
     const plugins = await prisma.publishedPlugin.findFirst({
       where: { id },
+      include: {
+        author: {
+          select: {
+            name: true,
+          },
+        },
+      },
     })
 
     if (!plugins) {
