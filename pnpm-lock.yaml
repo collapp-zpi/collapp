@@ -11,6 +11,7 @@ specifiers:
   '@types/downloadjs': ^1.4.2
   '@types/formidable': ^1.2.4
   '@types/react': 17.0.24
+  '@types/react-grid-layout': ^1.3.0
   '@types/styled-components': ^5.1.15
   '@typescript-eslint/eslint-plugin': ^4.33.0
   '@typescript-eslint/parser': ^5.0.0
@@ -41,12 +42,14 @@ specifiers:
   react-cool-onclickoutside: ^1.7.0
   react-dom: 17.0.2
   react-dropzone: ^11.4.2
+  react-grid-layout: ^1.3.0
   react-hook-form: ^7.17.4
   react-hot-toast: ^2.1.1
   react-icons: ^4.3.1
   react-range: ^1.8.11
   react-select: ^5.1.0
   react-textarea-autosize: ^8.3.3
+  react-tippy: ^1.4.0
   styled-components: ^5.3.1
   swr: ^1.0.1
   tailwindcss: ^2.2.17
@@ -79,12 +82,14 @@ dependencies:
   react-cool-onclickoutside: 1.7.0_react@17.0.2
   react-dom: 17.0.2_react@17.0.2
   react-dropzone: 11.4.2_react@17.0.2
+  react-grid-layout: 1.3.0_react-dom@17.0.2+react@17.0.2
   react-hook-form: 7.17.4_react@17.0.2
   react-hot-toast: 2.1.1_react-dom@17.0.2+react@17.0.2
   react-icons: 4.3.1_react@17.0.2
   react-range: 1.8.11_react-dom@17.0.2+react@17.0.2
   react-select: 5.1.0_152e7e799885aa8e2c90f8240d94e04e
   react-textarea-autosize: 8.3.3_9b26932173ac5a93c18fc8634be19f05
+  react-tippy: 1.4.0
   styled-components: 5.3.1_react-dom@17.0.2+react@17.0.2
   swr: 1.0.1_react@17.0.2
   tailwindcss: 2.2.17_96f83969316717847b3edf58a3f353f3
@@ -95,6 +100,7 @@ devDependencies:
   '@babel/plugin-proposal-decorators': 7.15.8_@babel+core@7.15.8
   '@types/formidable': 1.2.4
   '@types/react': 17.0.24
+  '@types/react-grid-layout': 1.3.0
   '@types/styled-components': 5.1.15
   '@typescript-eslint/eslint-plugin': 4.33.0_0aa2b7936f480903160f77e2f174338b
   '@typescript-eslint/parser': 5.0.0_eslint@7.32.0+typescript@4.4.3
@@ -825,6 +831,12 @@ packages:
 
   /@types/prop-types/15.7.4:
     resolution: {integrity: sha512-rZ5drC/jWjrArrS8BR6SIr4cWpW09RNTYt9AMZo3Jwwif+iacXAqgVjm0B0Bv/S1jhDXKHqRVNCbACkJ89RAnQ==}
+
+  /@types/react-grid-layout/1.3.0:
+    resolution: {integrity: sha512-Pytm7lvm4h91yN9CpdjV8IpU/hgVRHrUhDEIX593e4Mx9V14Pr3gWtj21WHzy5bDqU//jnGGVVSYJ3QVuI1NaQ==}
+    dependencies:
+      '@types/react': 17.0.24
+    dev: true
 
   /@types/react-transition-group/4.4.3:
     resolution: {integrity: sha512-fUx5muOWSYP8Bw2BUQ9M9RK9+W1XBK/7FLJ8PTQpnpTEkn0ccyMffyEQvan4C3h53gHdx7KE5Qrxi/LnUGQtdg==}
@@ -1616,6 +1628,11 @@ packages:
     resolution: {integrity: sha1-0dyXOSAxTfZ/vrlCI7TuNQI56Ws=}
     dependencies:
       mimic-response: 1.0.1
+    dev: false
+
+  /clsx/1.1.1:
+    resolution: {integrity: sha512-6/bPho624p3S2pMyvP5kKBPXnI3ufHLObBFCfgx+LkeR5lg2XYy2hqZqUf45ypD8COn2bhgGJSUE+l5dhNBieA==}
+    engines: {node: '>=6'}
     dev: false
 
   /color-convert/1.9.3:
@@ -3176,6 +3193,10 @@ packages:
     resolution: {integrity: sha1-4j8/nE+Pvd6HJSnBBxhXoIblzO8=}
     dev: true
 
+  /lodash.isequal/4.5.0:
+    resolution: {integrity: sha1-QVxEePK8wwEgwizhDtMib30+GOA=}
+    dev: false
+
   /lodash.merge/4.6.2:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
     dev: true
@@ -3812,6 +3833,11 @@ packages:
       - typescript
     dev: false
 
+  /popper.js/1.16.1:
+    resolution: {integrity: sha512-Wb4p1J4zyFTbM+u6WuO4XstYx4Ky9Cewe4DWrel7B0w6VVICvPwdOpotjzcf6eD8TsckVnIMNONQyPIUFOUbCQ==}
+    deprecated: You can find the new Popper v2 at @popperjs/core, this package is dedicated to the legacy v1
+    dev: false
+
   /postcss-js/3.0.3:
     resolution: {integrity: sha512-gWnoWQXKFw65Hk/mi2+WTQTHdPD5UJdDXZmX073EY/B3BWnYjO4F4t0VneTCnCGQ5E5GsCdMkzPaTXwl3r5dJw==}
     engines: {node: '>=10.0'}
@@ -4065,6 +4091,18 @@ packages:
       scheduler: 0.20.2
     dev: false
 
+  /react-draggable/4.4.4_react-dom@17.0.2+react@17.0.2:
+    resolution: {integrity: sha512-6e0WdcNLwpBx/YIDpoyd2Xb04PB0elrDrulKUgdrIlwuYvxh5Ok9M+F8cljm8kPXXs43PmMzek9RrB1b7mLMqA==}
+    peerDependencies:
+      react: '>= 16.3.0'
+      react-dom: '>= 16.3.0'
+    dependencies:
+      clsx: 1.1.1
+      prop-types: 15.7.2
+      react: 17.0.2
+      react-dom: 17.0.2_react@17.0.2
+    dev: false
+
   /react-dropzone/11.4.2_react@17.0.2:
     resolution: {integrity: sha512-ocYzYn7Qgp0tFc1gQtUTOaHHSzVTwhWHxxY+r7cj2jJTPfMTZB5GWSJHdIVoxsl+EQENpjJ/6Zvcw0BqKZQ+Eg==}
     engines: {node: '>= 10'}
@@ -4075,6 +4113,21 @@ packages:
       file-selector: 0.2.4
       prop-types: 15.7.2
       react: 17.0.2
+    dev: false
+
+  /react-grid-layout/1.3.0_react-dom@17.0.2+react@17.0.2:
+    resolution: {integrity: sha512-WqFwybAItXu0AaSt9YL8+9xE5YotIzMcCYE0Q9XBqSKNyShTxPbC0LjObV/tOWZoADNWJ+osseVfRoZsjzwWXg==}
+    peerDependencies:
+      react: '>= 16.3.0'
+      react-dom: '>= 16.3.0'
+    dependencies:
+      classnames: 2.3.1
+      lodash.isequal: 4.5.0
+      prop-types: 15.7.2
+      react: 17.0.2
+      react-dom: 17.0.2_react@17.0.2
+      react-draggable: 4.4.4_react-dom@17.0.2+react@17.0.2
+      react-resizable: 3.0.4_react-dom@17.0.2+react@17.0.2
     dev: false
 
   /react-hook-form/7.17.4_react@17.0.2:
@@ -4129,6 +4182,18 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: false
 
+  /react-resizable/3.0.4_react-dom@17.0.2+react@17.0.2:
+    resolution: {integrity: sha512-StnwmiESiamNzdRHbSSvA65b0ZQJ7eVQpPusrSmcpyGKzC0gojhtO62xxH6YOBmepk9dQTBi9yxidL3W4s3EBA==}
+    peerDependencies:
+      react: '>= 16.3'
+    dependencies:
+      prop-types: 15.7.2
+      react: 17.0.2
+      react-draggable: 4.4.4_react-dom@17.0.2+react@17.0.2
+    transitivePeerDependencies:
+      - react-dom
+    dev: false
+
   /react-select/5.1.0_152e7e799885aa8e2c90f8240d94e04e:
     resolution: {integrity: sha512-SkEBD1AYsSXrIdNj5HBt7+Ehe+jxdiB448J0atJqR6lE3l/GcFlRf4JYB3NlHe/02jrW4AnIQLo1t0IqWrxXOw==}
     peerDependencies:
@@ -4161,6 +4226,12 @@ packages:
       use-latest: 1.2.0_9b26932173ac5a93c18fc8634be19f05
     transitivePeerDependencies:
       - '@types/react'
+    dev: false
+
+  /react-tippy/1.4.0:
+    resolution: {integrity: sha512-r/hM5XK9Ztr2ZY7IWKuRmISTlUPS/R6ddz6PO2EuxCgW+4JBcGZRPU06XcVPRDCOIiio8ryBQFrXMhFMhsuaHA==}
+    dependencies:
+      popper.js: 1.16.1
     dev: false
 
   /react-transition-group/4.4.2_react-dom@17.0.2+react@17.0.2:
