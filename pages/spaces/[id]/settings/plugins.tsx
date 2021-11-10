@@ -6,7 +6,7 @@ import { GoChevronLeft } from 'react-icons/go'
 import { SpaceSettingsButtons } from 'includes/spaces/components/SpaceSettingsButtons'
 import GridLayout, { WidthProvider } from 'react-grid-layout'
 import styled from 'styled-components'
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
 import { PublishedPlugin, SpacePlugin } from '@prisma/client'
 import { withFilters } from 'shared/hooks/useFilters'
@@ -16,7 +16,7 @@ import { AiOutlineSearch } from 'react-icons/ai'
 import { InputText } from 'shared/components/input/InputText'
 import { FiltersForm } from 'shared/components/form/FiltersForm'
 import { LogoSpinner } from 'shared/components/LogoSpinner'
-import { FiPlus } from 'react-icons/fi'
+import { FiPlus, FiTrash2 } from 'react-icons/fi'
 
 interface Plugin extends SpacePlugin {
   plugin: PublishedPlugin
@@ -150,7 +150,10 @@ const SpacePluginSettings = ({
           <PluginList {...{ mapped, setMapped, setLayout }} />
         </div>
         <div className="flex-grow mt-8 md:mt-0">
-          <div className="bg-white px-1 py-2 rounded-3xl shadow-2xl">
+          <div
+            className="bg-white px-1 py-2 rounded-3xl shadow-2xl"
+            style={{ minHeight: '12.2rem' }}
+          >
             <PluginRepoContext.Provider value={mapped}>
               <Grid>
                 {(size) => (
@@ -202,6 +205,8 @@ const PluginList = withFilters(
     const { data } = useQuery('plugins', '/api/plugins')
 
     const handleAddPlugin = (plugin: PublishedPlugin) => () => {
+      if (!!mapped?.[plugin.id]) return
+
       setMapped((mapped) => ({
         ...mapped,
         [plugin.id]: {
@@ -221,13 +226,15 @@ const PluginList = withFilters(
       ])
     }
 
-    const items = useMemo(
-      () =>
-        !data?.entities
-          ? []
-          : data.entities.filter(({ id }: PublishedPlugin) => !mapped?.[id]),
-      [data?.entities, mapped],
-    )
+    const handleDeletePlugin = (plugin: PublishedPlugin) => () => {
+      if (!mapped?.[plugin.id]) return
+
+      setMapped((mapped) => ({
+        ...mapped,
+        [plugin.id]: null,
+      }))
+      setLayout((layout) => layout.filter(({ i }) => i !== plugin.id))
+    }
 
     return (
       <div className="bg-white p-4 rounded-3xl shadow-2xl mt-4 sticky top-4">
@@ -240,7 +247,7 @@ const PluginList = withFilters(
               <LogoSpinner size="w-8 h-7" />
             </div>
           )}
-          {!!data && !items.length && (
+          {!!data && !data?.entities?.length && (
             <div className="text-center mt-4 text-gray-400">
               No plugins found
             </div>
@@ -248,8 +255,8 @@ const PluginList = withFilters(
         </div>
         <div className="max-h-96 overflow-y-auto flex flex-col">
           {!!data &&
-            !!items.length &&
-            items.map((plugin: PublishedPlugin) => (
+            !!data?.entities?.length &&
+            data.entities.map((plugin: PublishedPlugin) => (
               <div key={plugin.id} className="flex p-2 items-center">
                 <img src={plugin.icon} className="w-10 h-10 rounded-25 mr-2" />
                 <div className="flex flex-col w-100 flex-grow">
@@ -262,12 +269,21 @@ const PluginList = withFilters(
                     </div>
                   )}
                 </div>
-                <div
-                  className="p-2 ml-2 bg-gray-100 cursor-pointer hover:bg-gray-200 transition-colors rounded-xl"
-                  onClick={handleAddPlugin(plugin)}
-                >
-                  <FiPlus />
-                </div>
+                {!mapped?.[plugin.id] ? (
+                  <div
+                    className="p-2 ml-2 bg-blue-50 text-blue-400 cursor-pointer hover:bg-blue-500 hover:text-white transition-colors rounded-xl"
+                    onClick={handleAddPlugin(plugin)}
+                  >
+                    <FiPlus />
+                  </div>
+                ) : (
+                  <div
+                    className="p-2 ml-2 bg-red-50 text-red-400 cursor-pointer hover:bg-red-500 hover:text-white transition-colors rounded-xl"
+                    onClick={handleDeletePlugin(plugin)}
+                  >
+                    <FiTrash2 />
+                  </div>
+                )}
               </div>
             ))}
         </div>
