@@ -22,6 +22,7 @@ import useRequest from 'shared/hooks/useRequest'
 import { updateSpacePlugins } from 'includes/spaces/endpoints'
 import { CgSpinner } from 'react-icons/cg'
 import { toast } from 'react-hot-toast'
+import Modal from 'shared/components/Modal'
 
 interface Plugin extends SpacePlugin {
   plugin: PublishedPlugin
@@ -133,10 +134,9 @@ const SpacePluginSettings = ({
   })
 
   const router = useRouter()
-  const pathId = String(router.query.id)
-  const id = pathId
+  const id = String(router.query.id)
 
-  const request = useRequest(updateSpacePlugins(pathId), {
+  const request = useRequest(updateSpacePlugins(id), {
     onSuccess: () => {
       toast.success('The plugins have been updated successfully.')
     },
@@ -248,6 +248,7 @@ const filtersSchema = object().shape({
 const PluginList = withFilters(
   function InnerPluginList({ mapped, setMapped, setLayout }) {
     const { data } = useQuery('plugins', '/api/plugins')
+    const [modal, setModal] = useState(null)
 
     const handleAddPlugin = (plugin: PublishedPlugin) => () => {
       if (!!mapped?.[plugin.id]) return
@@ -271,76 +272,108 @@ const PluginList = withFilters(
       ])
     }
 
-    const handleDeletePlugin = (plugin: PublishedPlugin) => () => {
-      if (!mapped?.[plugin.id]) return
+    const handleDeletePlugin = (pluginId: string) => () => {
+      setModal(null)
+      const plugin = mapped?.[pluginId]
+      if (!plugin) return
 
       setMapped((mapped) => ({
         ...mapped,
-        [plugin.id]: null,
+        [pluginId]: null,
       }))
-      setLayout((layout) => layout.filter(({ i }) => i !== plugin.id))
+      setLayout((layout) => layout.filter(({ i }) => i !== pluginId))
     }
 
     return (
-      <div className="bg-white p-4 rounded-3xl shadow-2xl mt-4 sticky top-4">
-        <FiltersForm schema={filtersSchema}>
-          <InputText icon={AiOutlineSearch} name="name" label="Plugin name" />
-        </FiltersForm>
-        <div className="mt-2">
-          {!data && (
-            <div className="text-center p-4 flex items-center justify-center">
-              <LogoSpinner size="w-8 h-7" />
-            </div>
-          )}
-          {!!data && !data?.entities?.length && (
-            <div className="text-center mt-4 text-gray-400">
-              No plugins found
-            </div>
-          )}
-        </div>
-        <div className="max-h-96 overflow-y-auto flex flex-col">
-          {!!data &&
-            !!data?.entities?.length &&
-            data.entities.map((plugin: PublishedPlugin) => (
-              <div key={plugin.id} className="flex p-2 items-center">
-                <img src={plugin.icon} className="w-10 h-10 rounded-25 mr-2" />
-                <div className="flex flex-col w-100 flex-grow">
-                  <div className="w-full h-4 mb-1 relative">
-                    <div className="truncate font-bold whitespace-nowrap absolute w-full">
-                      {plugin.name}
-                    </div>
-                  </div>
-                  {!!plugin.description && (
-                    <div className="w-full h-4 relative">
-                      <div className="truncate text-xs text-gray-400 whitespace-nowrap absolute w-full">
-                        {plugin.description}
+      <>
+        <div className="bg-white p-4 rounded-3xl shadow-2xl mt-4 sticky top-4">
+          <FiltersForm schema={filtersSchema}>
+            <InputText icon={AiOutlineSearch} name="name" label="Plugin name" />
+          </FiltersForm>
+          <div className="mt-2">
+            {!data && (
+              <div className="text-center p-4 flex items-center justify-center">
+                <LogoSpinner size="w-8 h-7" />
+              </div>
+            )}
+            {!!data && !data?.entities?.length && (
+              <div className="text-center mt-4 text-gray-400">
+                No plugins found
+              </div>
+            )}
+          </div>
+          <div className="max-h-96 overflow-y-auto flex flex-col">
+            {!!data &&
+              !!data?.entities?.length &&
+              data.entities.map((plugin: PublishedPlugin) => (
+                <div key={plugin.id} className="flex p-2 items-center">
+                  <img
+                    src={plugin.icon}
+                    className="w-10 h-10 rounded-25 mr-2"
+                  />
+                  <div className="flex flex-col w-100 flex-grow">
+                    <div className="w-full h-4 mb-1 relative">
+                      <div className="truncate font-bold whitespace-nowrap absolute w-full">
+                        {plugin.name}
                       </div>
                     </div>
+                    {!!plugin.description && (
+                      <div className="w-full h-4 relative">
+                        <div className="truncate text-xs text-gray-400 whitespace-nowrap absolute w-full">
+                          {plugin.description}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {!mapped?.[plugin.id] ? (
+                    <Tooltip value="Add">
+                      <div
+                        className="p-2 ml-2 bg-blue-50 text-blue-400 cursor-pointer hover:bg-blue-500 hover:text-white transition-colors rounded-xl"
+                        onClick={handleAddPlugin(plugin)}
+                      >
+                        <FiPlus />
+                      </div>
+                    </Tooltip>
+                  ) : (
+                    <Tooltip value="Delete">
+                      <div
+                        className="p-2 ml-2 bg-red-50 text-red-400 cursor-pointer hover:bg-red-500 hover:text-white transition-colors rounded-xl"
+                        onClick={() => setModal(plugin.id)}
+                      >
+                        <FiTrash2 />
+                      </div>
+                    </Tooltip>
                   )}
                 </div>
-                {!mapped?.[plugin.id] ? (
-                  <Tooltip value="Add">
-                    <div
-                      className="p-2 ml-2 bg-blue-50 text-blue-400 cursor-pointer hover:bg-blue-500 hover:text-white transition-colors rounded-xl"
-                      onClick={handleAddPlugin(plugin)}
-                    >
-                      <FiPlus />
-                    </div>
-                  </Tooltip>
-                ) : (
-                  <Tooltip value="Delete">
-                    <div
-                      className="p-2 ml-2 bg-red-50 text-red-400 cursor-pointer hover:bg-red-500 hover:text-white transition-colors rounded-xl"
-                      onClick={handleDeletePlugin(plugin)}
-                    >
-                      <FiTrash2 />
-                    </div>
-                  </Tooltip>
-                )}
-              </div>
-            ))}
+              ))}
+          </div>
         </div>
-      </div>
+        <Modal visible={modal != null} close={() => setModal(null)}>
+          <div className="p-4">
+            <h1 className="text-2xl font-bold text-red-500">Caution!</h1>
+            <p>
+              This operation is irreversible. If you submit the changes, this
+              will permanently delete this plugin&apos;s data.
+            </p>
+            <div className="flex mt-6">
+              <Button
+                onClick={() => setModal(null)}
+                className="ml-auto"
+                color="light"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleDeletePlugin(modal)}
+                className="ml-2"
+                color="red"
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      </>
     )
   },
   [],
