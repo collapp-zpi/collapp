@@ -21,6 +21,7 @@ import { Tooltip } from 'shared/components/Tooltip'
 import useRequest from 'shared/hooks/useRequest'
 import { updateSpacePlugins } from 'includes/spaces/endpoints'
 import { CgSpinner } from 'react-icons/cg'
+import { toast } from 'react-hot-toast'
 
 interface Plugin extends SpacePlugin {
   plugin: PublishedPlugin
@@ -136,11 +137,15 @@ const SpacePluginSettings = ({
   const id = pathId
 
   const request = useRequest(updateSpacePlugins(pathId), {
-    onSuccess: (data) => {
-      console.log(data)
+    onSuccess: () => {
+      toast.success('The plugins have been updated successfully.')
     },
-    onError: () => {
-      console.error('There has been an error')
+    onError: ({ message }) => {
+      toast.error(
+        `There has been an error while updating the plugins. ${
+          !!message && `(${message})`
+        }`,
+      )
     },
   })
 

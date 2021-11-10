@@ -32,13 +32,13 @@ export class UpdateSpaceDTO {
   icon?: string
 }
 
-type UpdateSpacePluginsDTO = {
+type UpdateSpacePluginsItem = {
   id: string
   left: number
   top: number
   height: number
   width: number
-}[]
+}
 
 @NextAuthGuard()
 class Spaces {
@@ -146,7 +146,7 @@ class Spaces {
   @Put('/:id/plugins')
   async updatePlugins(
     @Param('id') id: string,
-    @Body() body: UpdateSpacePluginsDTO,
+    @Body() body: UpdateSpacePluginsItem[],
     @User user: RequestUser,
   ) {
     const space = await prisma.space.findFirst({
@@ -167,9 +167,57 @@ class Spaces {
       throw new NotFoundException('The space does not exist.')
     }
 
-    return {
-      message: 'test',
+    const newPlugins = {} as { [key: string]: UpdateSpacePluginsItem }
+    for (const item of body) {
+      newPlugins[item.id] = item
     }
+    const created = []
+    const updated = []
+    const deleted = []
+
+    for (const plugin of space.plugins) {
+      const newPlugin = newPlugins?.[plugin.pluginId]
+      // delete case
+      if (!newPlugin) {
+        deleted.push({ pluginId: plugin.pluginId })
+        continue
+      }
+      // modify case
+      if (
+        newPlugin.left !== plugin.left ||
+        newPlugin.top !== plugin.top ||
+        newPlugin.width !== plugin.width ||
+        newPlugin.height !== plugin.height
+      ) {
+        updated.push({
+          where: { pluginId: plugin.pluginId },
+          data: {
+            left: newPlugin.left,
+            top: newPlugin.top,
+            width: newPlugin.width,
+            height: newPlugin.height,
+          },
+        })
+      }
+      delete newPlugins[plugin.pluginId]
+    }
+
+    for (const key in newPlugins) {
+      const { id, left, top, width, height } = newPlugins[key]
+
+      created.push({ pluginId: id, left, top, width, height })
+    }
+
+    return await prisma.space.update({
+      where: { id },
+      data: {
+        plugins: {
+          deleteMany: deleted,
+          create: created,
+          updateMany: updated,
+        },
+      },
+    })
   }
 }
 
