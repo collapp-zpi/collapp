@@ -8,6 +8,7 @@ import {
   ParseNumberPipe,
   Patch,
   Post,
+  Put,
   Query,
   ValidationPipe,
 } from '@storyofams/next-api-decorators'
@@ -30,6 +31,14 @@ export class UpdateSpaceDTO {
   @IsOptional()
   icon?: string
 }
+
+type UpdateSpacePluginsDTO = {
+  id: string
+  left: number
+  top: number
+  height: number
+  width: number
+}[]
 
 @NextAuthGuard()
 class Spaces {
@@ -132,6 +141,35 @@ class Spaces {
       where: { id },
       data: { ...body },
     })
+  }
+
+  @Put('/:id/plugins')
+  async updatePlugins(
+    @Param('id') id: string,
+    @Body() body: UpdateSpacePluginsDTO,
+    @User user: RequestUser,
+  ) {
+    const space = await prisma.space.findFirst({
+      include: {
+        plugins: true,
+      },
+      where: {
+        id,
+        users: {
+          some: {
+            userId: user.id,
+          },
+        },
+      },
+    })
+
+    if (!space) {
+      throw new NotFoundException('The space does not exist.')
+    }
+
+    return {
+      message: 'test',
+    }
   }
 }
 

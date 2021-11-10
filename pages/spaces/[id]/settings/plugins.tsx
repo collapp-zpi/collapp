@@ -18,6 +18,9 @@ import { FiltersForm } from 'shared/components/form/FiltersForm'
 import { LogoSpinner } from 'shared/components/LogoSpinner'
 import { FiPlus, FiTrash2 } from 'react-icons/fi'
 import { Tooltip } from 'shared/components/Tooltip'
+import useRequest from 'shared/hooks/useRequest'
+import { updateSpacePlugins } from 'includes/spaces/endpoints'
+import { CgSpinner } from 'react-icons/cg'
 
 interface Plugin extends SpacePlugin {
   plugin: PublishedPlugin
@@ -132,29 +135,65 @@ const SpacePluginSettings = ({
   const pathId = String(router.query.id)
   const id = pathId
 
+  const request = useRequest(updateSpacePlugins(pathId), {
+    onSuccess: (data) => {
+      console.log(data)
+    },
+    onError: () => {
+      console.error('There has been an error')
+    },
+  })
+
+  const handleSubmit = () => {
+    const newLayout = layout.map(({ i, x, y, w, h }) => ({
+      id: i,
+      left: x,
+      top: y,
+      width: w,
+      height: h,
+    }))
+    return request.send(newLayout)
+  }
+
   return (
     <AuthLayout>
       <Head>
         <title>Space settings</title>
       </Head>
-      <Button
-        color="light"
-        onClick={() => router.push(`/spaces/${id}`)}
-        className="mb-4"
-      >
-        <GoChevronLeft className="mr-2 -ml-2" />
-        Back
-      </Button>
+      <div className="flex justify-between mb-4">
+        <Button color="light" onClick={() => router.push(`/spaces/${id}`)}>
+          <GoChevronLeft className="mr-2 -ml-2" />
+          Back
+        </Button>
+        <Button
+          color="blue"
+          onClick={handleSubmit}
+          disabled={request.isLoading}
+        >
+          {request.isLoading && (
+            <CgSpinner className="animate-spin mr-2 -ml-2" />
+          )}
+          Submit
+        </Button>
+      </div>
       <div className="flex flex-col md:flex-row">
-        <div className="flex flex-col mr-12">
+        <div className="flex flex-col md:mr-12">
           <SpaceSettingsButtons />
           <PluginList {...{ mapped, setMapped, setLayout }} />
         </div>
         <div className="flex-grow mt-8 md:mt-0">
           <div
-            className="bg-white px-1 py-2 rounded-3xl shadow-2xl"
+            className="bg-white px-1 py-2 rounded-3xl shadow-2xl relative"
             style={{ minHeight: '12.2rem' }}
           >
+            {!layout?.length && (
+              <div className="flex flex-col p-4 text-center items-center justify-center absolute w-full h-full left-0 top-0">
+                <div className="font-bold text-2xl">There are no plugins</div>
+                <div className="text-gray-400">
+                  Add plugins from the list on the left-hand side
+                </div>
+              </div>
+            )}
             <PluginRepoContext.Provider value={mapped}>
               <Grid>
                 {(size) => (
