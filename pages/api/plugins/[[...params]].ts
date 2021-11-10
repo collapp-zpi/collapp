@@ -8,18 +8,27 @@ import {
   Query,
 } from '@storyofams/next-api-decorators'
 import { NextAuthGuard } from 'shared/utils/apiDecorators'
-import { fetchWithPagination } from 'shared/utils/fetchWithPagination'
 
 @NextAuthGuard()
 class Plugins {
   @Get()
-  getPluginsList(
+  async getPluginsList(
     @Query('limit', ParseNumberPipe({ nullable: true })) limit?: number,
     @Query('name') name?: string,
   ) {
-    return fetchWithPagination('publishedPlugin', limit, 1, {
-      ...(name && { name: { contains: name, mode: 'insensitive' } }),
+    const entityCount = await prisma.publishedPlugin.count({
+      ...(name && { where: { name: { contains: name, mode: 'insensitive' } } }),
     })
+
+    return {
+      entities: await prisma.publishedPlugin.findMany({
+        take: limit,
+        ...(name && {
+          where: { name: { contains: name, mode: 'insensitive' } },
+        }),
+      }),
+      pagination: { entityCount, limit },
+    }
   }
 
   @Get('/space/:id')

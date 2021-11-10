@@ -9,7 +9,7 @@ import styled from 'styled-components'
 import { createContext, useContext, useEffect, useState } from 'react'
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
 import { PublishedPlugin, SpacePlugin } from '@prisma/client'
-import { withFilters } from 'shared/hooks/useFilters'
+import { useFilters, withFilters } from 'shared/hooks/useFilters'
 import { useQuery } from 'shared/hooks/useQuery'
 import { object, string } from 'yup'
 import { AiOutlineSearch } from 'react-icons/ai'
@@ -245,10 +245,19 @@ const filtersSchema = object().shape({
   name: string().default(''),
 })
 
+const QUERY_WINDOW = 30
+
 const PluginList = withFilters(
   function InnerPluginList({ mapped, setMapped, setLayout }) {
     const { data } = useQuery('plugins', '/api/plugins')
     const [modal, setModal] = useState(null)
+    const [filters, setFilters] = useFilters()
+
+    const handleLoadMore = () => {
+      setFilters({
+        limit: String(Number(filters.limit) + QUERY_WINDOW),
+      })
+    }
 
     const handleAddPlugin = (plugin: PublishedPlugin) => () => {
       if (!!mapped?.[plugin.id]) return
@@ -346,6 +355,16 @@ const PluginList = withFilters(
                   )}
                 </div>
               ))}
+            {!!data?.pagination &&
+              data.pagination.entityCount > data.pagination.limit && (
+                <Button
+                  color="light"
+                  className="mx-auto mt-2"
+                  onClick={handleLoadMore}
+                >
+                  Load more...
+                </Button>
+              )}
           </div>
         </div>
         <Modal visible={modal != null} close={() => setModal(null)}>
@@ -377,5 +396,5 @@ const PluginList = withFilters(
     )
   },
   [],
-  { name: '', limit: '20' },
+  { name: '', limit: `${QUERY_WINDOW}` },
 )
