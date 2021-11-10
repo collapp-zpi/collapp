@@ -4,6 +4,8 @@ import { useRouter } from 'next/router'
 import Button from 'shared/components/button/Button'
 import { GoChevronLeft } from 'react-icons/go'
 import { SpaceSettingsButtons } from 'includes/spaces/components/SpaceSettingsButtons'
+import React from 'react'
+import InviteButton from 'includes/invitations/InviteButton'
 
 const SpaceUserSettings = () => {
   const router = useRouter()
@@ -28,6 +30,7 @@ const SpaceUserSettings = () => {
           <SpaceSettingsButtons />
         </div>
         <div className="flex-grow">
+          <InviteButton />
           <div className="bg-white px-8 py-8 rounded-3xl shadow-2xl">Users</div>
         </div>
       </div>

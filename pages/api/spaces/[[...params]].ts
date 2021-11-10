@@ -39,6 +39,10 @@ type UpdateSpacePluginsItem = {
   height: number
   width: number
 }
+export class CreateInviteDTO {
+  @IsNotEmpty({ message: 'Email is required' })
+  email!: string
+}
 
 @NextAuthGuard()
 class Spaces {
@@ -218,6 +222,34 @@ class Spaces {
         },
       },
     })
+  }
+
+  @Post('/:id/invite')
+  async generateInvite(
+    @Param('id') id: string,
+    @Body(ValidationPipe) body: CreateInviteDTO,
+    @User user: RequestUser,
+  ) {
+    const space = await prisma.space.findFirst({
+      where: {
+        id,
+      },
+    })
+
+    if (!space) {
+      throw new NotFoundException('The space does not exist.')
+    }
+    const invite = await prisma.invite.create({
+      data: {
+        space: {
+          connect: {
+            id: id,
+          },
+        },
+      },
+    })
+
+    return invite
   }
 }
 
