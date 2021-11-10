@@ -71,6 +71,7 @@ export const InputSelect = <Value extends OptionValue>({
   disabled,
   icon,
   options,
+  isClearable = true,
   ...props
 }: InputSelectProps<Value>) => {
   const {
@@ -96,7 +97,7 @@ export const InputSelect = <Value extends OptionValue>({
         }
         isDisabled={isLoading || disabled}
         onInputChange={(data) => setPlaceholderVisible(!!data)}
-        isClearable
+        isClearable={isClearable}
         placeholder=""
         options={options}
         styles={styles<Value>()}

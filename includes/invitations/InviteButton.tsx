@@ -1,19 +1,24 @@
 import React, { useState } from 'react'
 import toast from 'react-hot-toast'
 import { IoPersonAdd } from 'react-icons/io5'
-import { MdAlternateEmail } from 'react-icons/md'
 import Button from 'shared/components/button/Button'
 import SubmitButton from 'shared/components/button/SubmitButton'
 import { UncontrolledForm } from 'shared/components/form/UncontrolledForm'
-import { InputText } from 'shared/components/input/InputText'
+import { InputSelect } from 'shared/components/input/InputSelect'
 import Modal from 'shared/components/Modal'
 import { object, string } from 'yup'
 
 const InviteButton = () => {
   const [visible, setVisible] = useState(false)
+  const options: any = [
+    { label: '1 day', value: '1' },
+    { label: '3 days', value: '3' },
+    { label: '7 days', value: '7' },
+    { label: 'Never', value: '0' },
+  ]
 
   const schema = object().shape({
-    email: string().email().required(),
+    timeframe: string().required(),
   })
 
   const onError = () => {
@@ -24,12 +29,13 @@ const InviteButton = () => {
     toast.success('Email was sent')
   }
 
-  const query = async ({ email }: { email: string }) => {
+  const query = async ({ timeframe }: { timeframe: string }) => {
     // const response = await signIn<RedirectableProviderType>('email', {
     //   redirect: false,
     //   email,
     // })
     // if (!response || response.error) throw new Error('Login error')
+    console.log(timeframe)
   }
 
   return (
@@ -43,13 +49,18 @@ const InviteButton = () => {
           {...{ schema, query, onSuccess, onError }}
           className="flex"
         >
-          <InputText
-            type="email"
-            name="email"
-            label="Email"
-            icon={MdAlternateEmail}
-          />
-          <SubmitButton className="h-12" />
+          <InputSelect
+            className="w-80"
+            name="timeframe"
+            label="Expire at"
+            options={options}
+            onChange={(data: any) => {}}
+            isClearable={false}
+            value={null}
+          ></InputSelect>
+          <SubmitButton className="h-12" name="Generate">
+            Generate link
+          </SubmitButton>
         </UncontrolledForm>
       </Modal>
     </div>

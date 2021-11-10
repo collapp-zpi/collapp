@@ -40,8 +40,8 @@ type UpdateSpacePluginsItem = {
   width: number
 }
 export class CreateInviteDTO {
-  @IsNotEmpty({ message: 'Email is required' })
-  email!: string
+  @IsNotEmpty({ message: 'Timeframe is required' })
+  timeframe!: string
 }
 
 @NextAuthGuard()
