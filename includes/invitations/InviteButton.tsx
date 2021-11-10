@@ -7,8 +7,9 @@ import { UncontrolledForm } from 'shared/components/form/UncontrolledForm'
 import { InputSelect } from 'shared/components/input/InputSelect'
 import Modal from 'shared/components/Modal'
 import { object, string } from 'yup'
+import request from 'shared/utils/request'
 
-const InviteButton = () => {
+const InviteButton = ({ id }: { id: string }) => {
   const [visible, setVisible] = useState(false)
   const options: any = [
     { label: '1 day', value: '1' },
@@ -22,20 +23,15 @@ const InviteButton = () => {
   })
 
   const onError = () => {
-    toast.error('Email was not send.')
+    toast.error('Error')
   }
 
   const onSuccess = () => {
-    toast.success('Email was sent')
+    toast.success('Success')
   }
 
-  const query = async ({ timeframe }: { timeframe: string }) => {
-    // const response = await signIn<RedirectableProviderType>('email', {
-    //   redirect: false,
-    //   email,
-    // })
-    // if (!response || response.error) throw new Error('Login error')
-    console.log(timeframe)
+  const query = async (data: any) => {
+    const response = await request.post(`/api/spaces/${id}/invite`, data)
   }
 
   return (

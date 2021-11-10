@@ -30,7 +30,7 @@ const SpaceUserSettings = () => {
           <SpaceSettingsButtons />
         </div>
         <div className="flex-grow">
-          <InviteButton />
+          <InviteButton id={pathId} />
           <div className="bg-white px-8 py-8 rounded-3xl shadow-2xl">Users</div>
         </div>
       </div>
