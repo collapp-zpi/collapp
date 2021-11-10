@@ -39,11 +39,10 @@
 
 .react-grid-item > .react-resizable-handle {
   position: absolute;
-  width: 20px;
-  height: 20px;
-  background-color: red;
-  /*border: 3px solid red;*/
-  border-radius: 6px;
+  width: 1.75em;
+  height: 1.75em;
+  opacity: 0;
+  transition: opacity 0.1s ease;
 }
 
 .react-resizable-hide > .react-resizable-handle {
@@ -53,6 +52,8 @@
 .react-grid-item > .react-resizable-handle.react-resizable-handle-se {
   right: 0;
   bottom: 0;
-  /*transform: translate(-50%, -50%);*/
+  border-radius: 1.75em 0;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
   cursor: nwse-resize;
 }

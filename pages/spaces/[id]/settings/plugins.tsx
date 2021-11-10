@@ -37,6 +37,10 @@ const Tile = styled.div`
   align-items: center;
   font-size: 1em;
   font-weight: 600;
+
+  &:hover .react-resizable-handle {
+    opacity: 1;
+  }
 `
 
 const TileImage = styled.img`
