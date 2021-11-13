@@ -50,6 +50,8 @@ export default useApiForm
 
 export const withFallback = <T extends ComponentType>(Component: T) =>
   function FallbackComponent({ fallback, ...props }: ComponentProps<T>) {
+    if (!fallback) return <Component {...props} />
+
     return (
       <SWRConfig value={{ fallback }}>
         <Component {...props} />
