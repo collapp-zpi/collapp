@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router'
-import { AuthLayout } from 'layouts/AuthLayout'
 import Button from 'shared/components/button/Button'
 import { GoChevronLeft } from 'react-icons/go'
 import { toast } from 'react-hot-toast'
@@ -12,6 +11,8 @@ import { BiText } from 'react-icons/bi'
 import { InputTextarea } from 'shared/components/input/InputTextarea'
 import { FiAlignCenter } from 'react-icons/fi'
 import SubmitButton from 'shared/components/button/SubmitButton'
+import { withAuth } from 'shared/hooks/useAuth'
+import { Layout } from 'layouts/Layout'
 
 const schema = object().shape({
   name: string().required().default(''),
@@ -35,7 +36,7 @@ const CreateSpace = () => {
   }
 
   return (
-    <AuthLayout>
+    <Layout>
       <Button
         color="light"
         onClick={() => router.push('/spaces')}
@@ -65,8 +66,8 @@ const CreateSpace = () => {
           <SubmitButton className="ml-auto mt-4" />
         </UncontrolledForm>
       </div>
-    </AuthLayout>
+    </Layout>
   )
 }
 
-export default CreateSpace
+export default withAuth(CreateSpace)

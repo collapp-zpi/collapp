@@ -1,12 +1,10 @@
-import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
+import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
-import { AuthLayout } from 'layouts/AuthLayout'
 import { useRouter } from 'next/router'
 import Button from 'shared/components/button/Button'
 import { GoChevronLeft } from 'react-icons/go'
 import { generateKey } from 'shared/utils/object'
 import { useQuery } from 'shared/hooks/useQuery'
-import { Loading } from 'layouts/Loading'
 import useApiForm, { withFallback } from 'shared/hooks/useApiForm'
 import { useSWRConfig } from 'swr'
 import { toast } from 'react-hot-toast'
@@ -20,6 +18,10 @@ import { updateSpace } from 'includes/spaces/endpoints'
 import { InputTextarea } from 'shared/components/input/InputTextarea'
 import { FiAlignCenter } from 'react-icons/fi'
 import { SpaceSettingsButtons } from 'includes/spaces/components/SpaceSettingsButtons'
+import { withAuth } from 'shared/hooks/useAuth'
+import { Layout } from 'layouts/Layout'
+import { ErrorInfo } from 'shared/components/ErrorInfo'
+import { LogoSpinner } from 'shared/components/LogoSpinner'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.query
@@ -36,7 +38,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     return {
       props: {
         error: await res.json(),
-        isError: true,
       },
     }
   }
@@ -50,29 +51,15 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 }
 
-const SpaceSettings = ({
-  props,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+const SpaceSettings = () => {
   const router = useRouter()
   const pathId = String(router.query.id)
-  const { data } = useQuery(['space', pathId], `/api/spaces/${pathId}`)
+  const { data, error } = useQuery(['space', pathId], `/api/spaces/${pathId}`)
 
   const { id, name, description, icon } = data || {}
 
-  if (props?.isError) {
-    return <div>error hello</div>
-  }
-
-  if (!data) {
-    return (
-      <AuthLayout>
-        <Loading />
-      </AuthLayout>
-    )
-  }
-
   return (
-    <AuthLayout>
+    <Layout>
       <Head>
         <title>Space settings</title>
       </Head>
@@ -84,21 +71,33 @@ const SpaceSettings = ({
         <GoChevronLeft className="mr-2 -ml-2" />
         Back
       </Button>
-      <div className="flex">
-        <div className="flex flex-col mr-12">
-          <SpaceSettingsButtons />
+      {!!error && (
+        <div className="mt-12">
+          <ErrorInfo error={error} />
         </div>
-        <div className="flex-grow">
-          <div className="bg-white px-8 py-8 rounded-3xl shadow-2xl">
-            <SpaceForm {...{ name, description, icon }} />
+      )}
+      {!data && !error && (
+        <div className="m-12">
+          <LogoSpinner />
+        </div>
+      )}
+      {!!data && !error && (
+        <div className="flex">
+          <div className="flex flex-col mr-12">
+            <SpaceSettingsButtons />
+          </div>
+          <div className="flex-grow">
+            <div className="bg-white px-8 py-8 rounded-3xl shadow-2xl">
+              <SpaceForm {...{ name, description, icon }} />
+            </div>
           </div>
         </div>
-      </div>
-    </AuthLayout>
+      )}
+    </Layout>
   )
 }
 
-export default withFallback(SpaceSettings)
+export default withAuth(withFallback(SpaceSettings))
 
 interface SpaceFormProps {
   name: string

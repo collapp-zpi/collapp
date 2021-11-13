@@ -1,16 +1,18 @@
-import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
+import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
-import { AuthLayout } from 'layouts/AuthLayout'
 import { useRouter } from 'next/router'
 import Button from 'shared/components/button/Button'
 import { GoChevronLeft } from 'react-icons/go'
 import { generateKey } from 'shared/utils/object'
 import { useQuery } from 'shared/hooks/useQuery'
-import { Loading } from 'layouts/Loading'
 import { withFallback } from 'shared/hooks/useApiForm'
 import styled from 'styled-components'
 import { ReactNode } from 'react'
 import { FiSettings } from 'react-icons/fi'
+import { ErrorInfo } from 'shared/components/ErrorInfo'
+import { LogoSpinner } from 'shared/components/LogoSpinner'
+import { Layout } from 'layouts/Layout'
+import { withAuth } from 'shared/hooks/useAuth'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.query
@@ -27,7 +29,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     return {
       props: {
         error: await res.json(),
-        isError: true,
       },
     }
   }
@@ -85,29 +86,15 @@ const PluginBlock = ({
   </div>
 )
 
-const Space = ({
-  props,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+const Space = () => {
   const router = useRouter()
   const pathId = String(router.query.id)
-  const { data } = useQuery(['space', pathId], `/api/spaces/${pathId}`)
+  const { data, error } = useQuery(['space', pathId], `/api/spaces/${pathId}`)
 
   const { id, name, description, plugins } = data || {}
 
-  if (props?.isError) {
-    return <div>error hello</div>
-  }
-
-  if (!data) {
-    return (
-      <AuthLayout>
-        <Loading />
-      </AuthLayout>
-    )
-  }
-
   return (
-    <AuthLayout>
+    <Layout>
       <Head>
         <title>Space</title>
       </Head>
@@ -129,19 +116,33 @@ const Space = ({
           Settings
         </Button>
       </div>
-      <h1 className="text-2xl font-bold">{name}</h1>
-      <p className="whitespace-pre-wrap">{description}</p>
-      <div className="flex mt-12">
-        <PluginGrid>
-          {plugins.map(({ pluginId, ...size }: PluginBlockItem) => (
-            <PluginBlock key={pluginId} {...size}>
-              {pluginId}
-            </PluginBlock>
-          ))}
-        </PluginGrid>
-      </div>
-    </AuthLayout>
+      {!!error && (
+        <div className="mt-12">
+          <ErrorInfo error={error} />
+        </div>
+      )}
+      {!data && !error && (
+        <div className="m-12">
+          <LogoSpinner />
+        </div>
+      )}
+      {!!data && !error && (
+        <>
+          <h1 className="text-2xl font-bold">{name}</h1>
+          <p className="whitespace-pre-wrap">{description}</p>
+          <div className="flex mt-12">
+            <PluginGrid>
+              {plugins.map(({ pluginId, ...size }: PluginBlockItem) => (
+                <PluginBlock key={pluginId} {...size}>
+                  {pluginId}
+                </PluginBlock>
+              ))}
+            </PluginGrid>
+          </div>
+        </>
+      )}
+    </Layout>
   )
 }
 
-export default withFallback(Space)
+export default withAuth(withFallback(Space))

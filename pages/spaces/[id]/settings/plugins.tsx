@@ -1,5 +1,4 @@
 import Head from 'next/head'
-import { AuthLayout } from 'layouts/AuthLayout'
 import { useRouter } from 'next/router'
 import Button from 'shared/components/button/Button'
 import { GoChevronLeft } from 'react-icons/go'
@@ -14,7 +13,7 @@ import {
   useEffect,
   useState,
 } from 'react'
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
+import { GetServerSidePropsContext } from 'next'
 import { PublishedPlugin, SpacePlugin } from '@prisma/client'
 import useRequest from 'shared/hooks/useRequest'
 import { updateSpacePlugins } from 'includes/spaces/endpoints'
@@ -22,6 +21,13 @@ import { CgSpinner } from 'react-icons/cg'
 import { toast } from 'react-hot-toast'
 import PluginList from 'includes/spaces/plugin-editor/PluginList'
 import { defaultPluginIcon } from 'config/defaultIcons'
+import { withAuth } from 'shared/hooks/useAuth'
+import { Layout } from 'layouts/Layout'
+import { generateKey } from 'shared/utils/object'
+import { useQuery } from 'shared/hooks/useQuery'
+import { ErrorInfo } from 'shared/components/ErrorInfo'
+import { LogoSpinner } from 'shared/components/LogoSpinner'
+import { withFallback } from 'shared/hooks/useApiForm'
 
 interface Plugin extends SpacePlugin {
   plugin: PublishedPlugin
@@ -65,15 +71,16 @@ export const getServerSideProps = async (
     return {
       props: {
         error: await res.json(),
-        isError: true,
       },
     }
   }
 
-  const plugins: Plugin[] = await res.json()
-
   return {
-    props: { plugins },
+    props: {
+      fallback: {
+        [generateKey('space', String(id), 'plugins')]: await res.json(),
+      },
+    },
   }
 }
 
@@ -128,9 +135,43 @@ export type LayoutType = {
   maxH?: number
 }
 
-const SpacePluginSettings = ({
-  plugins = [],
-}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+const SpacePluginSettings = () => {
+  const router = useRouter()
+  const id = String(router.query.id)
+
+  const { data, error } = useQuery(['space', id, 'plugins'], `/api/user`)
+
+  return (
+    <Layout>
+      <Head>
+        <title>Space settings</title>
+      </Head>
+      {!data && (
+        <div className="flex justify-between mb-4">
+          <Button color="light" onClick={() => router.push(`/spaces/${id}`)}>
+            <GoChevronLeft className="mr-2 -ml-2" />
+            Back
+          </Button>
+        </div>
+      )}
+      {!!error && (
+        <div className="mt-12">
+          <ErrorInfo error={error} />
+        </div>
+      )}
+      {!data && !error && (
+        <div className="m-12">
+          <LogoSpinner />
+        </div>
+      )}
+      {!!data && !error && <InnerPlugins plugins={data} />}
+    </Layout>
+  )
+}
+
+export default withAuth(withFallback(SpacePluginSettings))
+
+const InnerPlugins = ({ plugins }: { plugins: Plugin[] }) => {
   const [mapped, setMapped] = useState(() => {
     const mapped: MappedType = {}
 
@@ -186,10 +227,7 @@ const SpacePluginSettings = ({
   }
 
   return (
-    <AuthLayout>
-      <Head>
-        <title>Space settings</title>
-      </Head>
+    <>
       <div className="flex justify-between mb-4">
         <Button color="light" onClick={() => router.push(`/spaces/${id}`)}>
           <GoChevronLeft className="mr-2 -ml-2" />
@@ -243,11 +281,9 @@ const SpacePluginSettings = ({
           </div>
         </div>
       </div>
-    </AuthLayout>
+    </>
   )
 }
-
-export default SpacePluginSettings
 
 const generateItem = (data: LayoutType) => (
   <Tile key={data.i}>

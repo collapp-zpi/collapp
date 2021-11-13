@@ -1,12 +1,14 @@
-import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
+import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
-import { AuthLayout } from 'layouts/AuthLayout'
 import { withFilters } from 'shared/hooks/useFilters'
 import { useQuery } from 'shared/hooks/useQuery'
 import { LogoSpinner } from 'shared/components/LogoSpinner'
 import { generateKey, objectPick } from 'shared/utils/object'
 import { CgMathPlus } from 'react-icons/cg'
 import Link from 'next/link'
+import { Layout } from 'layouts/Layout'
+import { withAuth } from 'shared/hooks/useAuth'
+import { ErrorInfo } from 'shared/components/ErrorInfo'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const params = objectPick(context.query, ['limit', 'page'])
@@ -25,7 +27,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     return {
       props: {
         error: await res.json(),
-        isError: true,
       },
     }
   }
@@ -39,28 +40,28 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 }
 
-const Spaces = ({
-  props,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
-  const { data } = useQuery('spaces', '/api/spaces')
-
-  if (props?.isError) {
-    return <div>error hello</div>
-  }
+const Spaces = () => {
+  const { data, error } = useQuery('spaces', '/api/spaces')
 
   return (
-    <AuthLayout>
+    <Layout>
       <Head>
         <title>Spaces</title>
       </Head>
       <h1 className="text-2xl font-bold text-gray-500 mb-4">Spaces</h1>
-      {!data ? (
+      {!!error && (
+        <div className="mt-12">
+          <ErrorInfo error={error} />
+        </div>
+      )}
+      {!data && !error && (
         <div className="m-12">
           <LogoSpinner />
         </div>
-      ) : (
+      )}
+      {!!data && !error && (
         <div className="grid grid-cols-4 gap-6">
-          {data.entities.map(({ id, name }) => (
+          {data?.entities.map(({ id, name }) => (
             <Link key={id} href={`/spaces/${id}`} passHref>
               <div className="border-gray-300 border-2 rounded-3xl h-36 cursor-pointer">
                 {name}
@@ -74,8 +75,8 @@ const Spaces = ({
           </Link>
         </div>
       )}
-    </AuthLayout>
+    </Layout>
   )
 }
 
-export default withFilters(Spaces, ['limit', 'page'])
+export default withAuth(withFilters(Spaces, ['limit', 'page']))
