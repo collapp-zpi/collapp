@@ -18,7 +18,16 @@ export const useQuery = (
 
   return useSWR(
     key ? generateKey(key, filters) : null,
-    () => fetch(`${origin}${path}?` + search).then((res) => res.json()),
+    () =>
+      fetch(`${origin}${path}?` + search).then(async (res) => {
+        const data = await res.json()
+        if (!res.ok) {
+          const error = new Error('An error ocurred. Please try again later.')
+          error.data = data
+          throw error
+        }
+        return data
+      }),
     options,
   )
 }
