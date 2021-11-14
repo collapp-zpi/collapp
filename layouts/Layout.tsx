@@ -59,8 +59,8 @@ export const Layout = ({
 
   const handleClose = () => {
     if (!emailSending) {
-      setEmailSent(false)
       setVisible(false)
+      setEmailSent(false)
     }
   }
 
@@ -110,14 +110,7 @@ export const Layout = ({
         <div className="ml-auto" />
         {status === 'unauthenticated' && (
           <div>
-            <Button
-              onClick={() =>
-                //signIn('google', { callbackUrl: `https://localhost:3002` })
-                setVisible(true)
-              }
-            >
-              Sign in
-            </Button>
+            <Button onClick={() => setVisible(true)}>Sign in</Button>
             <Modal visible={visible} close={handleClose}>
               {emailSent ? (
                 <div className="flex items-center justify-center space-x-2 pb-4">
@@ -126,14 +119,7 @@ export const Layout = ({
                 </div>
               ) : (
                 <div>
-                  <Button
-                    className="mx-auto"
-                    onClick={() =>
-                      signIn('google', {
-                        callbackUrl: `https://localhost:3002`,
-                      })
-                    }
-                  >
+                  <Button className="mx-auto" onClick={() => signIn('google')}>
                     <BsGoogle className="-ml-2 mr-2" /> Sign with Google
                   </Button>
                   <div className="flex items-center">

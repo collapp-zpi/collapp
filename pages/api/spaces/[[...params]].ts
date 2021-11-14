@@ -10,6 +10,7 @@ import {
   Post,
   Put,
   Query,
+  UnauthorizedException,
   ValidationPipe,
 } from '@storyofams/next-api-decorators'
 import { NextAuthGuard, RequestUser, User } from 'shared/utils/apiDecorators'
@@ -38,6 +39,10 @@ type UpdateSpacePluginsItem = {
   top: number
   height: number
   width: number
+}
+export class CreateInviteDTO {
+  @IsNotEmpty({ message: 'Timeframe is required' })
+  timeframe!: string
 }
 
 @NextAuthGuard()
@@ -218,6 +223,76 @@ class Spaces {
         },
       },
     })
+  }
+
+  @Post('/:id/invite')
+  async generateInvite(
+    @Param('id') id: string,
+    @Body(ValidationPipe) body: CreateInviteDTO,
+    @User user: RequestUser,
+  ) {
+    const space = await prisma.space.findFirst({
+      where: {
+        id,
+      },
+    })
+
+    if (!space) {
+      throw new NotFoundException('The space does not exist.')
+    }
+
+    const spaceUser = await prisma.spaceUser.findFirst({
+      where: {
+        spaceId: id,
+        userId: user.id,
+      },
+    })
+
+    if (!spaceUser) {
+      throw new UnauthorizedException(
+        'Users outside the space cannot generate invitations.',
+      )
+    }
+    if (!spaceUser.canInvite) {
+      throw new UnauthorizedException(
+        'Only users with invite permisions can generate invitations.',
+      )
+    }
+
+    let expire: number | null = 0
+    switch (body.timeframe) {
+      case '1':
+        expire = 1
+        break
+      case '3':
+        expire = 3
+        break
+      case '7':
+        expire = 7
+        break
+      default:
+        expire = null
+    }
+
+    const today = new Date()
+    let expireDay = null
+    if (!!expire) {
+      expireDay = new Date()
+      expireDay.setDate(today.getDate() + expire)
+    }
+
+    const invite = await prisma.invite.create({
+      data: {
+        expiresAt: expireDay,
+        space: {
+          connect: {
+            id: id,
+          },
+        },
+      },
+    })
+
+    return invite
   }
 }
 
