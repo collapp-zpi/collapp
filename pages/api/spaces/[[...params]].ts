@@ -275,8 +275,9 @@ class Spaces {
     }
 
     const today = new Date()
-    const expireDay = new Date()
+    let expireDay = null
     if (!!expire) {
+      expireDay = new Date()
       expireDay.setDate(today.getDate() + expire)
     }
 

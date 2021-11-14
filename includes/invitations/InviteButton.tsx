@@ -8,9 +8,13 @@ import { InputSelect } from 'shared/components/input/InputSelect'
 import Modal from 'shared/components/Modal'
 import { object, string } from 'yup'
 import request from 'shared/utils/request'
+import { BiLink } from 'react-icons/bi'
 
 const InviteButton = ({ id }: { id: string }) => {
   const [visible, setVisible] = useState(false)
+  const [isGenerated, setIsGenerated] = useState(false)
+  const [link, setLink] = useState(null)
+
   const options: any = [
     { label: '1 day', value: '1' },
     { label: '3 days', value: '3' },
@@ -22,16 +26,17 @@ const InviteButton = ({ id }: { id: string }) => {
     timeframe: string().required(),
   })
 
-  const onError = () => {
-    toast.error('Error')
+  const onError = (data: any) => {
+    toast.error('Something went wrong')
   }
 
   const onSuccess = () => {
-    toast.success('Success')
+    setIsGenerated(true)
   }
 
   const query = async (data: any) => {
     const response = await request.post(`/api/spaces/${id}/invite`, data)
+    setLink(response.id)
   }
 
   return (
@@ -41,23 +46,43 @@ const InviteButton = ({ id }: { id: string }) => {
         Invite
       </Button>
       <Modal visible={visible} close={() => setVisible(false)}>
-        <UncontrolledForm
-          {...{ schema, query, onSuccess, onError }}
-          className="flex"
-        >
-          <InputSelect
-            className="w-80"
-            name="timeframe"
-            label="Expire at"
-            options={options}
-            onChange={(data: any) => {}}
-            isClearable={false}
-            value={null}
-          ></InputSelect>
-          <SubmitButton className="h-12" name="Generate">
-            Generate link
-          </SubmitButton>
-        </UncontrolledForm>
+        {isGenerated ? (
+          <div>
+            <div>
+              <p id="link">{`${process.env.BASE_URL}/invitation/${link}`}</p>
+              <Button>Copy</Button>
+            </div>
+
+            <Button onClick={() => setIsGenerated(false)}>
+              <BiLink className="mr-2 -ml-2" />
+              Generate new link
+            </Button>
+          </div>
+        ) : (
+          <div>
+            <UncontrolledForm
+              {...{ schema, query, onSuccess, onError }}
+              className="flex"
+            >
+              <InputSelect
+                className="w-80"
+                name="timeframe"
+                label="Expire at"
+                options={options}
+                onChange={(data: any) => {}}
+                isClearable={false}
+                value={null}
+              ></InputSelect>
+              <SubmitButton className="h-12" name="Generate">
+                <BiLink className="mr-2 -ml-2" />
+                Generate link
+              </SubmitButton>
+            </UncontrolledForm>
+            {!!link && (
+              <Button onClick={() => setIsGenerated(true)}>Back</Button>
+            )}
+          </div>
+        )}
       </Modal>
     </div>
   )
