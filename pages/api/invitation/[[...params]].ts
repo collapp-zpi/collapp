@@ -18,6 +18,9 @@ class Invitations {
   async getInvitation(@Param('id') id: string, @User user: RequestUser) {
     const invitation = await prisma.invite.findFirst({
       where: { id },
+      include: {
+        space: true,
+      },
     })
 
     if (!invitation) {
@@ -27,6 +30,9 @@ class Invitations {
     const spaceUser = await prisma.spaceUser.findFirst({
       where: { spaceId: invitation.spaceId, userId: user.id },
     })
+
+    console.log(spaceUser)
+    console.log(user)
 
     if (!!spaceUser) {
       throw new BadRequestException('User is already a member of this space')

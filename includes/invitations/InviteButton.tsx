@@ -48,11 +48,7 @@ const InviteButton = ({ id }: { id: string }) => {
       <Modal visible={visible} close={() => setVisible(false)}>
         {isGenerated ? (
           <div>
-            <div>
-              <p id="link">{`${process.env.BASE_URL}/invitation/${link}`}</p>
-              <Button>Copy</Button>
-            </div>
-
+            <p id="link">{`${process.env.BASE_URL}/invitation/${link}`}</p>
             <Button onClick={() => setIsGenerated(false)}>
               <BiLink className="mr-2 -ml-2" />
               Generate new link

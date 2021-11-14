@@ -119,14 +119,7 @@ export const Layout = ({
                 </div>
               ) : (
                 <div>
-                  <Button
-                    className="mx-auto"
-                    onClick={() =>
-                      signIn('google', {
-                        callbackUrl: `https://localhost:3002`,
-                      })
-                    }
-                  >
+                  <Button className="mx-auto" onClick={() => signIn('google')}>
                     <BsGoogle className="-ml-2 mr-2" /> Sign with Google
                   </Button>
                   <div className="flex items-center">
