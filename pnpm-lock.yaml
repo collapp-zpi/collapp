@@ -3,7 +3,7 @@ lockfileVersion: 5.3
 specifiers:
   '@babel/core': ^7.15.8
   '@babel/plugin-proposal-decorators': ^7.15.8
-  '@collapp/email-sdk': ^1.0.9
+  '@collapp/email-sdk': ^2.0.0
   '@hookform/error-message': ^2.0.0
   '@hookform/resolvers': ^2.8.2
   '@next-auth/prisma-adapter': ^0.5.2-next.15
@@ -58,7 +58,7 @@ specifiers:
   yup: ^0.32.11
 
 dependencies:
-  '@collapp/email-sdk': 1.0.9
+  '@collapp/email-sdk': 2.0.0
   '@hookform/error-message': 2.0.0_a04009854ca8c4f2ea0b2ec522d05223
   '@hookform/resolvers': 2.8.2_react-hook-form@7.17.4
   '@next-auth/prisma-adapter': 0.5.2-next.15_844a57c290e3dd1cd5fc1df775e6b235
@@ -431,8 +431,8 @@ packages:
       '@babel/helper-validator-identifier': 7.15.7
       to-fast-properties: 2.0.0
 
-  /@collapp/email-sdk/1.0.9:
-    resolution: {integrity: sha512-txlpyng4wFAF68pjPzX6rDEBQ7vIH4roZ5KH4kdh+YeVdLTzbwt61DcTL68sGJZ15EGiobcjgcazerWEXPn6GA==}
+  /@collapp/email-sdk/2.0.0:
+    resolution: {integrity: sha512-4fhhD8W0bQjXqOKgNRz4zpzQL994W2cbwmJisqCnWw5wyUOx+mRe3q3djU+i5xE+c33QIMsI1+tf2G2kW1ykzg==}
     dependencies:
       amqplib: 0.8.0
       chalk: 4.1.2

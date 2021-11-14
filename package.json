@@ -13,7 +13,7 @@
     "shared-pull": "git subtree pull --prefix=shared https://github.com/collapp-zpi/shared main"
   },
   "dependencies": {
-    "@collapp/email-sdk": "^1.0.9",
+    "@collapp/email-sdk": "^2.0.0",
     "@hookform/error-message": "^2.0.0",
     "@hookform/resolvers": "^2.8.2",
     "@next-auth/prisma-adapter": "^0.5.2-next.15",
