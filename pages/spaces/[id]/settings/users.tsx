@@ -1,11 +1,12 @@
 import Head from 'next/head'
-import { AuthLayout } from 'layouts/AuthLayout'
 import { useRouter } from 'next/router'
 import Button from 'shared/components/button/Button'
 import { GoChevronLeft } from 'react-icons/go'
 import { SpaceSettingsButtons } from 'includes/spaces/components/SpaceSettingsButtons'
 import React from 'react'
 import InviteButton from 'includes/invitations/InviteButton'
+import { withAuth } from 'shared/hooks/useAuth'
+import { Layout } from 'layouts/Layout'
 
 const SpaceUserSettings = () => {
   const router = useRouter()
@@ -13,7 +14,7 @@ const SpaceUserSettings = () => {
   const id = pathId
 
   return (
-    <AuthLayout>
+    <Layout>
       <Head>
         <title>Space settings</title>
       </Head>
@@ -34,8 +35,8 @@ const SpaceUserSettings = () => {
           <div className="bg-white px-8 py-8 rounded-3xl shadow-2xl">Users</div>
         </div>
       </div>
-    </AuthLayout>
+    </Layout>
   )
 }
 
-export default SpaceUserSettings
+export default withAuth(SpaceUserSettings)

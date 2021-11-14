@@ -175,7 +175,6 @@ const SpacePluginSettings = () => {
 export default withAuth(withFallback(SpacePluginSettings))
 
 const InnerPlugins = ({ plugins }: { plugins: Plugin[] }) => {
-  console.log(plugins)
   const [mapped, setMapped] = useState(() => {
     const mapped: MappedType = {}
 

@@ -14,7 +14,6 @@ export default NextAuth({
           to: email,
           subject: 'Sign in to Collapp',
           secret: process.env.SECRET,
-          // Context data to fill email template
           context: { email, url },
         })
         mail.disconnect()

@@ -1,5 +1,5 @@
 import React, { ComponentProps, ReactNode, useState } from 'react'
-import { signIn, signOut, useSession } from 'next-auth/react'
+import { signOut, useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import { FiLogOut, FiSettings } from 'react-icons/fi'
 import { Loading } from './Loading'
@@ -10,16 +10,8 @@ import { NavbarLogo } from 'shared/components/NavbarLogo'
 import { CgExtension } from 'react-icons/cg'
 import { useQuery } from 'shared/hooks/useQuery'
 import Modal from 'shared/components/Modal'
-import { UncontrolledForm } from 'shared/components/form/UncontrolledForm'
-import SubmitButton from 'shared/components/button/SubmitButton'
-import { InputText } from 'shared/components/input/InputText'
-import { object, string } from 'yup'
-import toast from 'react-hot-toast'
-import { RedirectableProviderType } from 'next-auth/providers'
-import { MdAlternateEmail } from 'react-icons/md'
-import { AiOutlineMail } from 'react-icons/ai'
-import { BsGoogle } from 'react-icons/bs'
 import Link from 'next/link'
+import { LoginForm } from 'includes/user/LoginForm'
 
 const DropdownButton = ({
   children,
@@ -51,44 +43,9 @@ export const Layout = ({
     setDropdownOpen(false)
   })
   const avatarQuery = useQuery(!!data && 'user', '/api/user')
-
-  //#region Modal
   const [visible, setVisible] = useState(false)
-  const [emailSent, setEmailSent] = useState(false)
-  const [emailSending, setEmailSending] = useState(false)
 
-  const handleClose = () => {
-    if (!emailSending) {
-      setVisible(false)
-      setEmailSent(false)
-    }
-  }
-
-  const schema = object().shape({
-    email: string().email().required(),
-  })
-
-  const onError = () => {
-    setEmailSending(false)
-    toast.error('Email was not send.')
-  }
-
-  const onSuccess = () => {
-    setEmailSending(false)
-    setEmailSent(true)
-    toast.success('Email was sent')
-  }
-
-  const query = async ({ email }: { email: string }) => {
-    setEmailSending(true)
-    const response = await signIn<RedirectableProviderType>('email', {
-      redirect: false,
-      email,
-    })
-    if (!response || response.error) throw new Error('Login error')
-  }
-
-  //#endregion
+  const handleClose = () => setVisible(false)
 
   if (status === 'loading') return <Loading />
 
@@ -111,36 +68,8 @@ export const Layout = ({
         {status === 'unauthenticated' && (
           <div>
             <Button onClick={() => setVisible(true)}>Sign in</Button>
-            <Modal visible={visible} close={handleClose}>
-              {emailSent ? (
-                <div className="flex items-center justify-center space-x-2 pb-4">
-                  <AiOutlineMail />
-                  <h2>Check your email inbox</h2>
-                </div>
-              ) : (
-                <div>
-                  <Button className="mx-auto" onClick={() => signIn('google')}>
-                    <BsGoogle className="-ml-2 mr-2" /> Sign with Google
-                  </Button>
-                  <div className="flex items-center">
-                    <div className="flex-1 w-0.5 h-0.5 rounded-full mx-4 bg-gray-200" />
-                    <p>OR</p>
-                    <div className="flex-1 w-0.5 h-0.5 rounded-full mx-4 bg-gray-200" />
-                  </div>
-                  <UncontrolledForm
-                    {...{ schema, query, onSuccess, onError }}
-                    className="flex"
-                  >
-                    <InputText
-                      type="email"
-                      name="email"
-                      label="Email"
-                      icon={MdAlternateEmail}
-                    />
-                    <SubmitButton className="h-12" />
-                  </UncontrolledForm>
-                </div>
-              )}
+            <Modal className="p-9" visible={visible} close={handleClose}>
+              <LoginForm />
             </Modal>
           </div>
         )}
