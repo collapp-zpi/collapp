@@ -139,7 +139,10 @@ const SpacePluginSettings = () => {
   const router = useRouter()
   const id = String(router.query.id)
 
-  const { data, error } = useQuery(['space', id, 'plugins'], `/api/user`)
+  const { data, error } = useQuery(
+    ['space', id, 'plugins'],
+    `/api/plugins/space/${id}`,
+  )
 
   return (
     <Layout>
@@ -172,6 +175,7 @@ const SpacePluginSettings = () => {
 export default withAuth(withFallback(SpacePluginSettings))
 
 const InnerPlugins = ({ plugins }: { plugins: Plugin[] }) => {
+  console.log(plugins)
   const [mapped, setMapped] = useState(() => {
     const mapped: MappedType = {}
 
