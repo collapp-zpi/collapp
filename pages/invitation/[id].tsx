@@ -13,6 +13,7 @@ import SubmitButton from 'shared/components/button/SubmitButton'
 import { UncontrolledForm } from 'shared/components/form/UncontrolledForm'
 import { InputText } from 'shared/components/input/InputText'
 import { LogoSpinner } from 'shared/components/LogoSpinner'
+import request from 'shared/utils/request'
 import { object, string } from 'yup'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
@@ -43,7 +44,8 @@ const Invitation = (
   props: InferGetServerSidePropsType<typeof getServerSideProps>,
 ) => {
   const { status } = useSession()
-  //const router = useRouter()
+  const router = useRouter()
+  const pathId = String(router.query.id)
   const [emailSent, setEmailSent] = useState(false)
 
   if (status === 'loading') {
@@ -89,7 +91,6 @@ const Invitation = (
               className="mx-auto"
               onClick={() =>
                 signIn('google', {
-                  //callbackUrl: `${router.basePath}${router.pathname}`,
                   redirect: true,
                 })
               }
@@ -120,10 +121,22 @@ const Invitation = (
   }
 
   if (status === 'authenticated') {
+    const handleAccept = async () => {
+      const response = await request.post(`/api/invitation/${pathId}`)
+      toast.success('You were added to the space')
+      router.push(`/spaces/${props.invitation.spaceId}`)
+    }
+
+    if (props.isError) {
+      return <AuthLayout>{props.error.message}</AuthLayout>
+    }
+
     return (
       <AuthLayout>
-        <Button>Accept</Button>
-        <Button color="red">Decline</Button>
+        <Button onClick={handleAccept}>Accept</Button>
+        <Button color="red" onClick={() => router.push('/')}>
+          Decline
+        </Button>
       </AuthLayout>
     )
   }
