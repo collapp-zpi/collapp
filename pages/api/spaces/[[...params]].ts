@@ -1,7 +1,9 @@
 import { prisma } from 'shared/utils/prismaClient'
 import {
+  BadRequestException,
   Body,
   createHandler,
+  Delete,
   Get,
   NotFoundException,
   Param,
@@ -293,7 +295,7 @@ class Spaces {
         'Users outside the space cannot generate invitations.',
       )
     }
-    if (!spaceUser.canInvite) {
+    if (!spaceUser.canInvite && !spaceUser.isOwner) {
       throw new UnauthorizedException(
         'Only users with invite permisions can generate invitations.',
       )
@@ -399,6 +401,62 @@ class Spaces {
     }
 
     return spaceUser
+  }
+
+  @Delete('/:id/user/:userId')
+  async deleteSpaceUser(
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+    @User user: RequestUser,
+  ) {
+    const space = await prisma.space.findFirst({
+      where: {
+        id: id,
+      },
+    })
+
+    if (!space) {
+      throw new NotFoundException('The space does not exist.')
+    }
+
+    const spaceUser = await prisma.spaceUser.findFirst({
+      where: {
+        spaceId: id,
+        userId: user.id,
+      },
+    })
+
+    if (!spaceUser) {
+      throw new UnauthorizedException(
+        'Users outside the space cannot remove users.',
+      )
+    }
+
+    if (!spaceUser.canInvite && !spaceUser.isOwner) {
+      throw new UnauthorizedException(
+        'Only users with invite permisions can remove users.',
+      )
+    }
+
+    const spaceUserToDelete = await prisma.spaceUser.findFirst({
+      where: { userId: userId },
+    })
+
+    if (!spaceUserToDelete) {
+      throw new BadRequestException(
+        'Requested user to remove is not a member of this space.',
+      )
+    }
+
+    if (spaceUserToDelete.isOwner) {
+      throw new BadRequestException(
+        'Requested user to remove is an owner of the space.',
+      )
+    }
+
+    // return await prisma.spaceUser.delete({
+    //   where: { userId: userId },
+    // })
   }
 }
 
