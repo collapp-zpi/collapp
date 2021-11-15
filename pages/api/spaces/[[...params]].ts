@@ -334,6 +334,41 @@ class Spaces {
 
     return invite
   }
+
+  @Get('/:id/users')
+  async getSpaceUsers(@Param('id') id: string, @User user: RequestUser) {
+    const space = await prisma.space.findFirst({
+      where: {
+        id: id,
+      },
+    })
+
+    if (!space) {
+      throw new NotFoundException('The space does not exist.')
+    }
+
+    const spaceUser = await prisma.spaceUser.findFirst({
+      where: {
+        spaceId: id,
+        userId: user.id,
+      },
+    })
+
+    if (!spaceUser) {
+      throw new UnauthorizedException(
+        'Users outside the space cannot view space members.',
+      )
+    }
+
+    return await prisma.spaceUser.findMany({
+      where: {
+        spaceId: id,
+      },
+      include: {
+        user: true,
+      },
+    })
+  }
 }
 
 export default createHandler(Spaces)

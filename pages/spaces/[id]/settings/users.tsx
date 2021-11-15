@@ -7,11 +7,52 @@ import React from 'react'
 import InviteButton from 'includes/invitations/InviteButton'
 import { withAuth } from 'shared/hooks/useAuth'
 import { Layout } from 'layouts/Layout'
+import { GetServerSidePropsContext } from 'next'
+import { generateKey } from 'shared/utils/object'
+import { useQuery } from 'shared/hooks/useQuery'
+import { Loading } from 'layouts/Loading'
+import { withFallback } from 'shared/hooks/useApiForm'
+import { SpaceUser } from '.pnpm/@prisma+client@3.3.0_prisma@3.3.0/node_modules/.prisma/client'
+
+export const getServerSideProps = async (
+  context: GetServerSidePropsContext,
+) => {
+  const { id } = context.query
+  const res = await fetch(`${process.env.BASE_URL}/api/spaces/${id}/users`, {
+    method: 'GET',
+    headers: {
+      ...(context?.req?.headers?.cookie && {
+        cookie: context.req.headers.cookie,
+      }),
+    },
+  })
+
+  if (!res.ok) {
+    return {
+      props: {
+        error: await res.json(),
+      },
+    }
+  }
+
+  return {
+    props: {
+      fallback: {
+        [generateKey('space', String(id), 'users')]: await res.json(),
+      },
+    },
+  }
+}
 
 const SpaceUserSettings = () => {
   const router = useRouter()
   const pathId = String(router.query.id)
   const id = pathId
+
+  const { data, error } = useQuery(
+    ['space', id, 'users'],
+    `/api/space/${id}/users`,
+  )
 
   return (
     <Layout>
@@ -31,12 +72,39 @@ const SpaceUserSettings = () => {
           <SpaceSettingsButtons />
         </div>
         <div className="flex-grow">
-          <InviteButton id={pathId} />
-          <div className="bg-white px-8 py-8 rounded-3xl shadow-2xl">Users</div>
+          <div className="bg-white px-8 py-8 rounded-3xl shadow-2xl">
+            <div className="flex items-center justify-between">
+              <h1 className="font-bold text-xl">Users</h1>
+              <InviteButton id={id} />
+            </div>
+            {!data ? (
+              <div className="m-auto">
+                <Loading />
+              </div>
+            ) : (
+              <table className="mt-8">
+                <thead></thead>
+                <tbody>
+                  {data.map((spaceUser: SpaceUser) => (
+                    <tr>
+                      <td>
+                        <img
+                          src={spaceUser.user.image || ''}
+                          alt="User avatar"
+                          className={`w-10 h-10 rounded-full`}
+                        />
+                      </td>
+                      <td>{spaceUser.user.name}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       </div>
     </Layout>
   )
 }
 
-export default withAuth(SpaceUserSettings)
+export default withAuth(withFallback(SpaceUserSettings))

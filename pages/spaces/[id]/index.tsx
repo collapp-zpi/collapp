@@ -14,6 +14,8 @@ import { Layout } from 'layouts/Layout'
 import { withAuth } from 'shared/hooks/useAuth'
 import { CgSpinner } from 'react-icons/cg'
 import { Tooltip } from 'shared/components/Tooltip'
+import React from 'react'
+import InviteButton from 'includes/invitations/InviteButton'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.query
@@ -104,14 +106,17 @@ const Space = () => {
           <GoChevronLeft className="mr-2 -ml-2" />
           Back
         </Button>
-        <Button
-          color="light"
-          onClick={() => router.push(`/spaces/${id}/settings`)}
-          className="mb-4"
-        >
-          <FiSettings className="mr-2 -ml-2" />
-          Settings
-        </Button>
+        <div className="flex space-x-4">
+          <InviteButton id={pathId} />
+          <Button
+            color="light"
+            onClick={() => router.push(`/spaces/${id}/settings`)}
+            className="mb-4"
+          >
+            <FiSettings className="mr-2 -ml-2" />
+            Settings
+          </Button>
+        </div>
       </div>
       {!!error && (
         <div className="mt-12">
