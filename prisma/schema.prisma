@@ -232,7 +232,7 @@ model Invite {
   createdAt   DateTime         @default(now())
   expiresAt   DateTime?         
 
-  space       Space            @relation(fields: [spaceId], references: [id])
+  space       Space            @relation(fields: [spaceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   spaceId     String
 }
 
@@ -241,10 +241,10 @@ model SpaceUser {
   canEdit     Boolean          @default(false)
   canInvite   Boolean          @default(false)
 
-  user        RegularUser      @relation(fields: [userId], references: [id])
+  user        RegularUser      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId      String
 
-  space       Space            @relation(fields: [spaceId], references: [id])
+  space       Space            @relation(fields: [spaceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   spaceId     String
 
   @@unique([userId, spaceId])
@@ -257,10 +257,10 @@ model SpacePlugin {
   height      Int
   data        Json               @default("{}")
 
-  plugin      PublishedPlugin    @relation(fields: [pluginId], references: [id])
+  plugin      PublishedPlugin    @relation(fields: [pluginId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   pluginId    String
 
-  space       Space              @relation(fields: [spaceId], references: [id])
+  space       Space              @relation(fields: [spaceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   spaceId     String
 
   @@unique([pluginId, spaceId])
