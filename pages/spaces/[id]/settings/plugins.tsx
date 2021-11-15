@@ -67,6 +67,18 @@ export const getServerSideProps = async (
     },
   })
 
+  const permissions = await fetch(
+    `${process.env.BASE_URL}/api/spaces/${id}/permissions`,
+    {
+      method: 'GET',
+      headers: {
+        ...(context?.req?.headers?.cookie && {
+          cookie: context.req.headers.cookie,
+        }),
+      },
+    },
+  )
+
   if (!res.ok) {
     return {
       props: {
@@ -75,10 +87,19 @@ export const getServerSideProps = async (
     }
   }
 
+  if (!permissions.ok) {
+    return {
+      props: {
+        error: await permissions.json(),
+      },
+    }
+  }
+
   return {
     props: {
       fallback: {
         [generateKey('space', String(id), 'plugins')]: await res.json(),
+        [generateKey('permissions', String(id))]: await permissions.json(),
       },
     },
   }
@@ -218,6 +239,11 @@ const InnerPlugins = ({ plugins }: { plugins: Plugin[] }) => {
     },
   })
 
+  const permissions = useQuery(
+    ['permissions', id],
+    `/api/spaces/${id}/permissions`,
+  )
+
   const handleSubmit = () => {
     const newLayout = layout.map(({ i, x, y, w, h }) => ({
       id: i,
@@ -249,7 +275,15 @@ const InnerPlugins = ({ plugins }: { plugins: Plugin[] }) => {
       </div>
       <div className="flex flex-col md:flex-row">
         <div className="flex flex-col md:mr-12">
-          <SpaceSettingsButtons />
+          {!!permissions.data &&
+          (permissions.data.canEdit || permissions.data.isOwner) ? (
+            <SpaceSettingsButtons
+              canEdit={permissions.data.canEdit}
+              isOwner={permissions.data.isOwner}
+            />
+          ) : (
+            <SpaceSettingsButtons canEdit={true} isOwner={false} />
+          )}
           <PluginList {...{ mapped, setMapped, setLayout }} />
         </div>
         <div className="flex-grow mt-8 md:mt-0">

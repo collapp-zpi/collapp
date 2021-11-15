@@ -109,7 +109,15 @@ const SpaceSettings = () => {
       {!!data && !error && (
         <div className="flex">
           <div className="flex flex-col mr-12">
-            <SpaceSettingsButtons />
+            {!!permissions.data &&
+            (permissions.data.canEdit || permissions.data.isOwner) ? (
+              <SpaceSettingsButtons
+                canEdit={permissions.data.canEdit}
+                isOwner={permissions.data.isOwner}
+              />
+            ) : (
+              <SpaceSettingsButtons canEdit={false} isOwner={false} />
+            )}
           </div>
           <div className="flex-grow">
             <div className="bg-white px-8 py-8 rounded-3xl shadow-2xl">
