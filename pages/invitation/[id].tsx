@@ -8,7 +8,6 @@ import { LogoSpinner } from 'shared/components/LogoSpinner'
 import request from 'shared/utils/request'
 import { LoginForm } from 'includes/user/LoginForm'
 import { Layout } from 'layouts/Layout'
-import { withAuth } from 'shared/hooks/useAuth'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.query
@@ -80,4 +79,4 @@ const Invitation = (
   )
 }
 
-export default withAuth(Invitation)
+export default Invitation

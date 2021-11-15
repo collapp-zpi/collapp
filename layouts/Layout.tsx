@@ -101,7 +101,11 @@ export const Layout = ({
                 <FiSettings className="mr-2" />
                 <span>Settings</span>
               </DropdownButton>
-              <DropdownButton onClick={() => signOut()}>
+              <DropdownButton
+                onClick={() =>
+                  signOut({ callbackUrl: `${process.env.BASE_URL}` })
+                }
+              >
                 <FiLogOut className="mr-2" />
                 <span>Sign out</span>
               </DropdownButton>
