@@ -454,9 +454,14 @@ class Spaces {
       )
     }
 
-    // return await prisma.spaceUser.delete({
-    //   where: { userId: userId },
-    // })
+    return await prisma.spaceUser.delete({
+      where: {
+        userId_spaceId: {
+          userId: userId,
+          spaceId: id,
+        },
+      },
+    })
   }
 }
 

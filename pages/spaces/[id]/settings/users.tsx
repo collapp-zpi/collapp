@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import Button from 'shared/components/button/Button'
 import { GoChevronLeft } from 'react-icons/go'
 import { SpaceSettingsButtons } from 'includes/spaces/components/SpaceSettingsButtons'
-import React from 'react'
+import React, { useState } from 'react'
 import InviteButton from 'includes/invitations/InviteButton'
 import { withAuth } from 'shared/hooks/useAuth'
 import { Layout } from 'layouts/Layout'
@@ -13,6 +13,8 @@ import { useQuery } from 'shared/hooks/useQuery'
 import { Loading } from 'layouts/Loading'
 import { withFallback } from 'shared/hooks/useApiForm'
 import { SpaceUser } from '.pnpm/@prisma+client@3.3.0_prisma@3.3.0/node_modules/.prisma/client'
+import { useSWRConfig } from 'swr'
+import request from 'shared/utils/request'
 
 export const getServerSideProps = async (
   context: GetServerSidePropsContext,
@@ -70,15 +72,22 @@ const SpaceUserSettings = () => {
   const pathId = String(router.query.id)
   const id = pathId
 
-  const { data, error } = useQuery(
-    ['space', id, 'users'],
-    `/api/spaces/${id}/users`,
-  )
+  const [deleting, setDeleting] = useState(false)
+  const { mutate } = useSWRConfig()
+
+  const { data } = useQuery(['space', id, 'users'], `/api/spaces/${id}/users`)
 
   const permissions = useQuery(
     ['permissions', pathId],
     `/api/spaces/${pathId}/permissions`,
   )
+
+  const handleRemove = async (userId: string) => {
+    setDeleting(true)
+    await request.delete(`/api/spaces/${id}/user/${userId}`)
+    setDeleting(false)
+    mutate(generateKey('space', String(id), 'users'))
+  }
 
   return (
     <Layout>
@@ -124,6 +133,23 @@ const SpaceUserSettings = () => {
                         />
                       </td>
                       <td>{spaceUser.user.name}</td>
+                      <td>
+                        {spaceUser.isOwner ? (
+                          <span>Owner</span>
+                        ) : (
+                          !!permissions.data &&
+                          (permissions.data.canInvite ||
+                            permissions.data.isOwner) && (
+                            <Button
+                              disabled={deleting}
+                              color="red"
+                              onClick={() => handleRemove(spaceUser.userId)}
+                            >
+                              Remove
+                            </Button>
+                          )
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
