@@ -34,6 +34,18 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     },
   })
 
+  const permissions = await fetch(
+    `${process.env.BASE_URL}/api/spaces/${id}/permissions`,
+    {
+      method: 'GET',
+      headers: {
+        ...(context?.req?.headers?.cookie && {
+          cookie: context.req.headers.cookie,
+        }),
+      },
+    },
+  )
+
   if (!res.ok) {
     return {
       props: {
@@ -42,10 +54,19 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     }
   }
 
+  if (!permissions.ok) {
+    return {
+      props: {
+        error: await permissions.json(),
+      },
+    }
+  }
+
   return {
     props: {
       fallback: {
         [generateKey('space', String(id))]: await res.json(),
+        [generateKey('permissions', String(id))]: await permissions.json(),
       },
     },
   }
@@ -55,6 +76,10 @@ const SpaceSettings = () => {
   const router = useRouter()
   const pathId = String(router.query.id)
   const { data, error } = useQuery(['space', pathId], `/api/spaces/${pathId}`)
+  const permissions = useQuery(
+    ['permissions', pathId],
+    `/api/spaces/${pathId}/permissions`,
+  )
 
   const { id, name, description, icon } = data || {}
 
@@ -88,7 +113,12 @@ const SpaceSettings = () => {
           </div>
           <div className="flex-grow">
             <div className="bg-white px-8 py-8 rounded-3xl shadow-2xl">
-              <SpaceForm {...{ name, description, icon }} />
+              {!!permissions.data &&
+              (permissions.data.canEdit || permissions.data.isOwner) ? (
+                <SpaceForm disabled={false} {...{ name, description, icon }} />
+              ) : (
+                <SpaceForm disabled={true} {...{ name, description, icon }} />
+              )}
             </div>
           </div>
         </div>
@@ -103,6 +133,7 @@ interface SpaceFormProps {
   name: string
   description: string
   icon: string
+  disabled: boolean
 }
 
 const schema = object().shape({
@@ -111,7 +142,7 @@ const schema = object().shape({
   icon: string(),
 })
 
-const SpaceForm = ({ name, description, icon }: SpaceFormProps) => {
+const SpaceForm = ({ name, description, icon, disabled }: SpaceFormProps) => {
   const router = useRouter()
   const pathId = String(router.query.id)
   const { mutate } = useSWRConfig()
@@ -138,15 +169,17 @@ const SpaceForm = ({ name, description, icon }: SpaceFormProps) => {
   return (
     <Form {...apiForm} className="flex flex-col">
       <div className="flex flex-col md:flex-row">
-        <InputPhoto name="icon" image={icon} />
+        <InputPhoto disabled={disabled} name="icon" image={icon} />
         <div className="flex-grow flex flex-col">
           <InputText
+            disabled={disabled}
             name="name"
             label="Name"
             icon={BiText}
             className="mt-2 md:mt-0"
           />
           <InputTextarea
+            disabled={disabled}
             name="description"
             label="Description"
             className="mt-2"
@@ -154,7 +187,7 @@ const SpaceForm = ({ name, description, icon }: SpaceFormProps) => {
           />
         </div>
       </div>
-      <SubmitButton className="ml-auto mt-4" />
+      <SubmitButton disabled={disabled} className="ml-auto mt-4" />
     </Form>
   )
 }

@@ -33,7 +33,13 @@ const SettingsButton = ({ href, icon: Icon, text }: SettingsButtonProps) => {
   )
 }
 
-export const SpaceSettingsButtons = () => {
+export const SpaceSettingsButtons = ({
+  canEdit,
+  isOwner,
+}: {
+  canEdit: boolean
+  isOwner: boolean
+}) => {
   const router = useRouter()
   const id = String(router.query.id)
   return (
@@ -48,11 +54,13 @@ export const SpaceSettingsButtons = () => {
         icon={FiUsers}
         text="Users"
       />
-      <SettingsButton
-        href={`/spaces/${id}/settings/plugins`}
-        icon={CgExtension}
-        text="Plugins"
-      />
+      {(canEdit || isOwner) && (
+        <SettingsButton
+          href={`/spaces/${id}/settings/plugins`}
+          icon={CgExtension}
+          text="Plugins"
+        />
+      )}
     </>
   )
 }

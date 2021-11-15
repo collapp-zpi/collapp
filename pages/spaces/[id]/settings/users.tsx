@@ -15,6 +15,7 @@ import { withFallback } from 'shared/hooks/useApiForm'
 import { SpaceUser } from '.pnpm/@prisma+client@3.3.0_prisma@3.3.0/node_modules/.prisma/client'
 import { useSWRConfig } from 'swr'
 import request from 'shared/utils/request'
+import toast from 'react-hot-toast'
 
 export const getServerSideProps = async (
   context: GetServerSidePropsContext,
@@ -87,6 +88,7 @@ const SpaceUserSettings = () => {
     await request.delete(`/api/spaces/${id}/user/${userId}`)
     setDeleting(false)
     mutate(generateKey('space', String(id), 'users'))
+    toast.success('User was successfully removed from space')
   }
 
   return (
