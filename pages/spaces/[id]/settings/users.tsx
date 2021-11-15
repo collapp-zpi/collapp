@@ -16,6 +16,12 @@ import { SpaceUser } from '.pnpm/@prisma+client@3.3.0_prisma@3.3.0/node_modules/
 import { useSWRConfig } from 'swr'
 import request from 'shared/utils/request'
 import toast from 'react-hot-toast'
+import useRequest from 'shared/hooks/useRequest'
+import { defaultPluginIcon } from 'config/defaultIcons'
+import { InputCheckboxPure } from 'shared/components/input/InputCheckbox'
+import { FiTrash2 } from 'react-icons/fi'
+import { Tooltip } from 'shared/components/Tooltip'
+import { CgSpinner } from 'react-icons/cg'
 
 export const getServerSideProps = async (
   context: GetServerSidePropsContext,
@@ -73,9 +79,6 @@ const SpaceUserSettings = () => {
   const pathId = String(router.query.id)
   const id = pathId
 
-  const [deleting, setDeleting] = useState(false)
-  const { mutate } = useSWRConfig()
-
   const { data } = useQuery(['space', id, 'users'], `/api/spaces/${id}/users`)
 
   const permissions = useQuery(
@@ -83,13 +86,8 @@ const SpaceUserSettings = () => {
     `/api/spaces/${pathId}/permissions`,
   )
 
-  const handleRemove = async (userId: string) => {
-    setDeleting(true)
-    await request.delete(`/api/spaces/${id}/user/${userId}`)
-    setDeleting(false)
-    mutate(generateKey('space', String(id), 'users'))
-    toast.success('User was successfully removed from space')
-  }
+  const canEdit =
+    !!permissions.data && (permissions.data.canEdit || permissions.data.isOwner)
 
   return (
     <Layout>
@@ -106,8 +104,7 @@ const SpaceUserSettings = () => {
       </Button>
       <div className="flex">
         <div className="flex flex-col mr-12">
-          {!!permissions.data &&
-          (permissions.data.canEdit || permissions.data.isOwner) ? (
+          {canEdit ? (
             <SpaceSettingsButtons
               canEdit={permissions.data.canEdit}
               isOwner={permissions.data.isOwner}
@@ -120,50 +117,17 @@ const SpaceUserSettings = () => {
           <div className="bg-white px-8 py-8 rounded-3xl shadow-2xl">
             <div className="flex items-center justify-between">
               <h1 className="font-bold text-xl">Users</h1>
-              {!!permissions.data &&
-                (permissions.data.canInvite || permissions.data.isOwner) && (
-                  <InviteButton id={pathId} />
-                )}
+              {canEdit && <InviteButton id={pathId} />}
             </div>
             {!data ? (
               <div className="m-auto">
                 <Loading />
               </div>
             ) : (
-              <table className="mt-8">
-                <thead></thead>
-                <tbody>
-                  {data.map((spaceUser: SpaceUser) => (
-                    <tr key={spaceUser.userId}>
-                      <td>
-                        <img
-                          src={spaceUser.user.image || ''}
-                          alt="User avatar"
-                          className={`w-10 h-10 rounded-full`}
-                        />
-                      </td>
-                      <td>{spaceUser.user.name}</td>
-                      <td>
-                        {spaceUser.isOwner ? (
-                          <span>Owner</span>
-                        ) : (
-                          !!permissions.data &&
-                          (permissions.data.canInvite ||
-                            permissions.data.isOwner) && (
-                            <Button
-                              disabled={deleting}
-                              color="red"
-                              onClick={() => handleRemove(spaceUser.userId)}
-                            >
-                              Remove
-                            </Button>
-                          )
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <PermissionsForm
+                data={data}
+                isOwner={permissions?.data?.isOwner}
+              />
             )}
           </div>
         </div>
@@ -173,3 +137,128 @@ const SpaceUserSettings = () => {
 }
 
 export default withAuth(withFallback(SpaceUserSettings))
+
+const PermissionsForm = ({ data, isOwner }) => {
+  const router = useRouter()
+  const id = String(router.query.id)
+  const [state, setState] = useState(() => {
+    const state: { [key: string]: { canEdit: boolean; canInvite: boolean } } =
+      {}
+    for (const { userId, canEdit, canInvite } of data) {
+      state[userId] = { canEdit, canInvite }
+    }
+    return state
+  })
+  const [wasEdited, setWasEdited] = useState(false)
+
+  const { mutate } = useSWRConfig()
+
+  const deleteUser = useRequest(
+    async (userId: string) =>
+      request.delete(`/api/spaces/${id}/user/${userId}`),
+    {
+      onSuccess: () => {
+        toast.success('User was successfully removed from space')
+        mutate(generateKey('space', String(id), 'users'))
+      },
+      onError: () => {
+        toast.error('There was an error removing the user from space')
+      },
+    },
+  )
+
+  const updateUsers = useRequest(
+    () => request.patch(`/api/spaces/${id}/permissions`, state),
+    {
+      onSuccess: () => {
+        toast.success('Permissions were successfully updated')
+        mutate(generateKey('space', String(id), 'users'))
+        setWasEdited(false)
+      },
+      onError: () => {
+        toast.error('There was an error updating the permissions')
+      },
+    },
+  )
+
+  const updatePermission = (id: string, permission: string) => () => {
+    setWasEdited(true)
+    setState({
+      ...state,
+      [id]: {
+        ...state[id],
+        [permission]: !state[id][permission],
+      },
+    })
+  }
+
+  return (
+    <>
+      <table className="mt-8 w-full">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Invite</th>
+            <th>Edit</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((spaceUser: SpaceUser) => (
+            <tr key={spaceUser.userId}>
+              <td className="flex items-center p-3">
+                <img
+                  src={spaceUser.user.image || defaultPluginIcon}
+                  alt="User avatar"
+                  className="w-8 h-8 rounded-25 mr-2 bg-white"
+                />
+                {spaceUser.user.name}
+              </td>
+              <td>
+                <InputCheckboxPure
+                  checked={state?.[spaceUser.userId]?.canInvite}
+                  onChange={updatePermission(spaceUser.userId, 'canInvite')}
+                  disabled={spaceUser.isOwner || !isOwner}
+                  className="p-3 w-full flex justify-center"
+                />
+              </td>
+              <td>
+                <InputCheckboxPure
+                  checked={state?.[spaceUser.userId]?.canEdit}
+                  onChange={updatePermission(spaceUser.userId, 'canEdit')}
+                  disabled={spaceUser.isOwner || !isOwner}
+                  className="p-3 w-full flex justify-center"
+                />
+              </td>
+              <td className="p-3 flex justify-end">
+                {!spaceUser.isOwner && isOwner && (
+                  <Tooltip value="Remove">
+                    <Button
+                      disabled={deleteUser.isLoading}
+                      color="red-link"
+                      hasIcon
+                      onClick={() => deleteUser.send(spaceUser.userId)}
+                    >
+                      <FiTrash2 />
+                    </Button>
+                  </Tooltip>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="mt-4 flex">
+        <Button
+          disabled={!wasEdited || updateUsers.isLoading}
+          className="ml-auto"
+          onClick={() => updateUsers.send()}
+        >
+          {updateUsers.isLoading && (
+            <CgSpinner className="animate-spin mr-2 -ml-2" />
+          )}
+          Submit
+        </Button>
+      </div>
+    </>
+  )
+}

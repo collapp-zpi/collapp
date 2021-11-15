@@ -41,6 +41,16 @@ type UpdateSpacePluginsItem = {
   height: number
   width: number
 }
+
+type UpdateSpaceUserItem = {
+  canEdit: boolean
+  canInvite: boolean
+}
+
+type UpdateSpaceUserPermissions = {
+  [key: string]: UpdateSpaceUserItem
+}
+
 export class CreateInviteDTO {
   @IsNotEmpty({ message: 'Timeframe is required' })
   timeframe!: string
@@ -459,6 +469,54 @@ class Spaces {
         userId_spaceId: {
           userId: userId,
           spaceId: id,
+        },
+      },
+    })
+  }
+
+  @Patch(`/:id/permissions`)
+  async updatePermissions(
+    @Param('id') id: string,
+    @User user: RequestUser,
+    @Body() body: UpdateSpaceUserPermissions,
+  ) {
+    const space = await prisma.space.findFirst({
+      where: { id },
+    })
+
+    if (!space) {
+      throw new NotFoundException('The space does not exist.')
+    }
+
+    const spaceUser = await prisma.spaceUser.findFirst({
+      where: {
+        spaceId: id,
+        userId: user.id,
+      },
+    })
+
+    if (!spaceUser) {
+      throw new UnauthorizedException(
+        'Users outside the space cannot update permissions.',
+      )
+    }
+
+    if (!spaceUser.isOwner) {
+      throw new UnauthorizedException(
+        'Only space owners can update persmissions.',
+      )
+    }
+
+    const update = Object.entries(body).map(([userId, data]) => ({
+      where: { userId },
+      data,
+    }))
+
+    return await prisma.space.update({
+      where: { id },
+      data: {
+        users: {
+          updateMany: update,
         },
       },
     })
