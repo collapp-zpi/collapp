@@ -9,6 +9,8 @@ import Link from 'next/link'
 import { Layout } from 'layouts/Layout'
 import { withAuth } from 'shared/hooks/useAuth'
 import { ErrorInfo } from 'shared/components/ErrorInfo'
+import { Tooltip } from 'shared/components/Tooltip'
+import { defaultPluginIcon } from 'config/defaultIcons'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const params = objectPick(context.query, ['limit', 'page'])
@@ -42,6 +44,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
 const Spaces = () => {
   const { data, error } = useQuery('spaces', '/api/spaces')
+  console.log(data)
 
   return (
     <Layout>
@@ -61,18 +64,44 @@ const Spaces = () => {
       )}
       {!!data && !error && (
         <div className="grid grid-cols-4 gap-6">
-          {data?.entities.map(({ id, name }) => (
+          <Tooltip value="Create a new space" innerClassName="">
+            <Link href="/spaces/create" passHref>
+              <div className="border-dashed border-gray-400 text-gray-400 border-2 rounded-3xl h-40 flex items-center justify-center text-xl cursor-pointer hover:text-blue-500 hover:border-blue-500 transition-colors">
+                <CgMathPlus />
+              </div>
+            </Link>
+          </Tooltip>
+          {data?.entities.map(({ id, name, icon, users }) => (
             <Link key={id} href={`/spaces/${id}`} passHref>
-              <div className="border-gray-300 border-2 rounded-3xl h-36 cursor-pointer">
-                {name}
+              <div className="border-gray-300 rounded-3xl h-40 cursor-pointer bg-gray-50 shadow-xl p-6 flex flex-col transform hover:-translate-y-2 hover:shadow-2xl transition-all">
+                <div className="flex justify-between items-center">
+                  <img
+                    src={icon || defaultPluginIcon}
+                    alt="Space icon"
+                    className="w-10 h-10 rounded-lg bg-gray-200 shadow-lg"
+                  />
+                  <div className="flex -space-x-2.5">
+                    {users.map(({ user }) => (
+                      <Tooltip
+                        value={user.name}
+                        key={user.id}
+                        innerClassName="flex transform hover:-translate-y-1 hover:shadow-sm shadow-none transition-all"
+                      >
+                        <img
+                          src={user?.image || defaultPluginIcon}
+                          alt="User image"
+                          className="w-9 h-9 rounded-full bg-gray-200 border-2 border-gray-50"
+                        />
+                      </Tooltip>
+                    ))}
+                  </div>
+                </div>
+                <div className="mt-auto font-bold text-lg h-6 truncate">
+                  {name}
+                </div>
               </div>
             </Link>
           ))}
-          <Link href="/spaces/create" passHref>
-            <div className="border-dashed border-gray-400 text-gray-400 border-2 rounded-3xl h-36 flex items-center justify-center text-xl cursor-pointer hover:text-blue-500 hover:border-blue-500 transition-colors">
-              <CgMathPlus />
-            </div>
-          </Link>
         </div>
       )}
     </Layout>

@@ -7,12 +7,13 @@ import { generateKey } from 'shared/utils/object'
 import { useQuery } from 'shared/hooks/useQuery'
 import { withFallback } from 'shared/hooks/useApiForm'
 import styled from 'styled-components'
-import { ReactNode } from 'react'
 import { FiSettings } from 'react-icons/fi'
 import { ErrorInfo } from 'shared/components/ErrorInfo'
 import { LogoSpinner } from 'shared/components/LogoSpinner'
 import { Layout } from 'layouts/Layout'
 import { withAuth } from 'shared/hooks/useAuth'
+import { CgSpinner } from 'react-icons/cg'
+import { Tooltip } from 'shared/components/Tooltip'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.query
@@ -58,22 +59,16 @@ interface PluginBlockSize {
 }
 
 interface PluginBlockProps extends PluginBlockSize {
-  children: ReactNode
+  id: string
 }
 
 interface PluginBlockItem extends PluginBlockSize {
   pluginId: string
 }
 
-const PluginBlock = ({
-  children,
-  top,
-  left,
-  width,
-  height,
-}: PluginBlockProps) => (
+const PluginBlock = ({ id, top, left, width, height }: PluginBlockProps) => (
   <div
-    className="rounded-3xl shadow-2xl overflow-hidden"
+    className="rounded-3xl shadow-2xl overflow-hidden bg-gray-300 flex"
     style={{
       borderRadius: 35,
       gridColumnStart: left + 1,
@@ -82,7 +77,9 @@ const PluginBlock = ({
       gridRowEnd: `span ${height}`,
     }}
   >
-    {children}
+    <Tooltip value={id} className="m-auto" innerClassName="p-2">
+      <CgSpinner className="animate-spin text-gray-500 text-xl" />
+    </Tooltip>
   </div>
 )
 
@@ -133,9 +130,7 @@ const Space = () => {
           <div className="flex mt-12">
             <PluginGrid>
               {plugins.map(({ pluginId, ...size }: PluginBlockItem) => (
-                <PluginBlock key={pluginId} {...size}>
-                  {pluginId}
-                </PluginBlock>
+                <PluginBlock key={pluginId} id={pluginId} {...size} />
               ))}
             </PluginGrid>
           </div>

@@ -5,6 +5,7 @@ import { ComponentProps, ReactNode } from 'react'
 interface TooltipProps extends ComponentProps<'div'> {
   value: string
   className?: string
+  innerClassName?: string
   children: ReactNode
 }
 
@@ -12,10 +13,11 @@ export const Tooltip = ({
   value,
   children,
   className,
+  innerClassName = 'inline-block',
   ...props
 }: TooltipProps) => (
   <Tippy title={value} duration={250} animateFill className={className}>
-    <div className="inline-block" {...props}>
+    <div className={innerClassName} {...props}>
       {children}
     </div>
   </Tippy>

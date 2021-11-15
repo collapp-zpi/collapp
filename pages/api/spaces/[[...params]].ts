@@ -15,7 +15,6 @@ import {
 } from '@storyofams/next-api-decorators'
 import { NextAuthGuard, RequestUser, User } from 'shared/utils/apiDecorators'
 import { IsNotEmpty, IsOptional, NotEquals } from 'class-validator'
-import { fetchWithPagination } from 'shared/utils/fetchWithPagination'
 
 export class CreateSpaceDTO {
   @IsNotEmpty({ message: 'Space name is required.' })
@@ -48,18 +47,59 @@ export class CreateInviteDTO {
 @NextAuthGuard()
 class Spaces {
   @Get()
-  getSpaceList(
+  async getSpaceList(
     @User user: RequestUser,
-    @Query('limit', ParseNumberPipe({ nullable: true })) limit?: number,
-    @Query('page', ParseNumberPipe({ nullable: true })) page?: number,
+    @Query('limit', ParseNumberPipe({ nullable: true })) _limit?: number,
+    @Query('page', ParseNumberPipe({ nullable: true })) _page?: number,
   ) {
-    return fetchWithPagination('space', limit, page, {
-      users: {
-        some: {
-          userId: user.id,
+    const limit = (_limit && Number(_limit)) || 20
+    const page = (_page && Number(_page)) || 1
+
+    const offset = (page - 1) * limit
+    const entityCount = await prisma.space.count({
+      where: {
+        users: {
+          some: {
+            userId: user.id,
+          },
         },
       },
     })
+    const pages = Math.ceil(entityCount / limit)
+
+    return {
+      entities: await prisma.space.findMany({
+        skip: offset,
+        take: limit,
+        include: {
+          users: {
+            take: 3,
+            where: {
+              userId: {
+                not: user.id,
+              },
+            },
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  image: true,
+                },
+              },
+            },
+          },
+        },
+        where: {
+          users: {
+            some: {
+              userId: user.id,
+            },
+          },
+        },
+      }),
+      pagination: { pages, page, limit },
+    }
   }
 
   @Get('/:id')
