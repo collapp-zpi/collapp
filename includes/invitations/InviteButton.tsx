@@ -27,7 +27,7 @@ const InviteButton = ({ id }: { id: string }) => {
   })
 
   const onError = (data: any) => {
-    toast.error('Something went wrong')
+    toast.error(data.message)
   }
 
   const onSuccess = () => {
