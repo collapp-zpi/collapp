@@ -28,6 +28,18 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     },
   })
 
+  const permissions = await fetch(
+    `${process.env.BASE_URL}/api/spaces/${id}/permissions`,
+    {
+      method: 'GET',
+      headers: {
+        ...(context?.req?.headers?.cookie && {
+          cookie: context.req.headers.cookie,
+        }),
+      },
+    },
+  )
+
   if (!res.ok) {
     return {
       props: {
@@ -36,10 +48,19 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     }
   }
 
+  if (!permissions.ok) {
+    return {
+      props: {
+        error: await permissions.json(),
+      },
+    }
+  }
+
   return {
     props: {
       fallback: {
         [generateKey('space', String(id))]: await res.json(),
+        [generateKey('permissions', String(id))]: await permissions.json(),
       },
     },
   }
@@ -89,6 +110,10 @@ const Space = () => {
   const router = useRouter()
   const pathId = String(router.query.id)
   const { data, error } = useQuery(['space', pathId], `/api/spaces/${pathId}`)
+  const permissions = useQuery(
+    ['permissions', pathId],
+    `/api/spaces/${pathId}/permissions`,
+  )
 
   const { id, name, description, plugins } = data || {}
 
@@ -107,7 +132,10 @@ const Space = () => {
           Back
         </Button>
         <div className="flex space-x-4">
-          <InviteButton id={pathId} />
+          {!!permissions.data && permissions.data.canInvite && (
+            <InviteButton id={pathId} />
+          )}
+
           <Button
             color="light"
             onClick={() => router.push(`/spaces/${id}/settings`)}

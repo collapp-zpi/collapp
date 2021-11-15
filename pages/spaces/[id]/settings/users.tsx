@@ -27,6 +27,18 @@ export const getServerSideProps = async (
     },
   })
 
+  const permissions = await fetch(
+    `${process.env.BASE_URL}/api/spaces/${id}/permissions`,
+    {
+      method: 'GET',
+      headers: {
+        ...(context?.req?.headers?.cookie && {
+          cookie: context.req.headers.cookie,
+        }),
+      },
+    },
+  )
+
   if (!res.ok) {
     return {
       props: {
@@ -35,10 +47,19 @@ export const getServerSideProps = async (
     }
   }
 
+  if (!permissions.ok) {
+    return {
+      props: {
+        error: await permissions.json(),
+      },
+    }
+  }
+
   return {
     props: {
       fallback: {
         [generateKey('space', String(id), 'users')]: await res.json(),
+        [generateKey('permissions', String(id))]: await permissions.json(),
       },
     },
   }
@@ -51,7 +72,12 @@ const SpaceUserSettings = () => {
 
   const { data, error } = useQuery(
     ['space', id, 'users'],
-    `/api/space/${id}/users`,
+    `/api/spaces/${id}/users`,
+  )
+
+  const permissions = useQuery(
+    ['permissions', pathId],
+    `/api/spaces/${pathId}/permissions`,
   )
 
   return (
@@ -75,7 +101,10 @@ const SpaceUserSettings = () => {
           <div className="bg-white px-8 py-8 rounded-3xl shadow-2xl">
             <div className="flex items-center justify-between">
               <h1 className="font-bold text-xl">Users</h1>
-              <InviteButton id={id} />
+              {!!permissions.data &&
+                (permissions.data.canInvite || permissions.data.isOwner) && (
+                  <InviteButton id={pathId} />
+                )}
             </div>
             {!data ? (
               <div className="m-auto">
@@ -86,7 +115,7 @@ const SpaceUserSettings = () => {
                 <thead></thead>
                 <tbody>
                   {data.map((spaceUser: SpaceUser) => (
-                    <tr>
+                    <tr key={spaceUser.userId}>
                       <td>
                         <img
                           src={spaceUser.user.image || ''}

@@ -369,6 +369,37 @@ class Spaces {
       },
     })
   }
+
+  @Get('/:id/permissions')
+  async getPermissions(@Param('id') id: string, @User user: RequestUser) {
+    const space = await prisma.space.findFirst({
+      where: {
+        id: id,
+      },
+    })
+
+    if (!space) {
+      throw new NotFoundException('The space does not exist.')
+    }
+
+    const spaceUser = await prisma.spaceUser.findFirst({
+      where: {
+        spaceId: id,
+        userId: user.id,
+      },
+      select: {
+        isOwner: true,
+        canEdit: true,
+        canInvite: true,
+      },
+    })
+
+    if (!spaceUser) {
+      throw new UnauthorizedException('User is not a member of this space.')
+    }
+
+    return spaceUser
+  }
 }
 
 export default createHandler(Spaces)
