@@ -3,7 +3,6 @@ import { IconType } from 'react-icons'
 import { useRouter } from 'next/router'
 import { FiSettings, FiUsers } from 'react-icons/fi'
 import { CgExtension } from 'react-icons/cg'
-import { FaCrown } from 'react-icons/fa'
 
 interface SettingsButtonProps {
   href: string
@@ -60,13 +59,6 @@ export const SpaceSettingsButtons = ({
           href={`/spaces/${id}/settings/plugins`}
           icon={CgExtension}
           text="Plugins"
-        />
-      )}
-      {isOwner && (
-        <SettingsButton
-          href={`/spaces/${id}/settings/ownership`}
-          icon={FaCrown}
-          text="Ownership"
         />
       )}
     </>

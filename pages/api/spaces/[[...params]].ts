@@ -521,6 +521,74 @@ class Spaces {
       },
     })
   }
+
+  @Patch('/:id/transfer-ownership')
+  async transferOwnerShip(
+    @Param('id') id: string,
+    @User user: RequestUser,
+    @Body() body: string,
+  ) {
+    const space = await prisma.space.findFirst({
+      where: { id },
+    })
+
+    if (!space) {
+      throw new NotFoundException('The space does not exist.')
+    }
+
+    const spaceUser = await prisma.spaceUser.findFirst({
+      where: {
+        spaceId: id,
+        userId: user.id,
+      },
+    })
+
+    if (!spaceUser) {
+      throw new UnauthorizedException(
+        'Users outside the space cannot transfer ownership.',
+      )
+    }
+
+    if (!spaceUser.isOwner) {
+      throw new UnauthorizedException(
+        'Only space owner can transfer ownership.',
+      )
+    }
+
+    if (user.id === body) {
+      throw new BadRequestException(
+        'Cannot transfer ownership to the same user.',
+      )
+    }
+
+    const update = [
+      {
+        where: { userId: spaceUser.userId },
+        data: {
+          canEdit: true,
+          canInvite: true,
+          isOwner: false,
+        },
+      },
+      {
+        where: { userId: body },
+        data: {
+          canEdit: true,
+          canInvite: true,
+          isOwner: true,
+        },
+      },
+    ]
+
+    return await prisma.space.update({
+      where: { id },
+      data: {
+        users: {
+          updateMany: update,
+        },
+      },
+    })
+  }
 }
 
 export default createHandler(Spaces)

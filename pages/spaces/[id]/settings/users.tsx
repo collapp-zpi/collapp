@@ -22,6 +22,8 @@ import { InputCheckboxPure } from 'shared/components/input/InputCheckbox'
 import { FiTrash2 } from 'react-icons/fi'
 import { Tooltip } from 'shared/components/Tooltip'
 import { CgSpinner } from 'react-icons/cg'
+import { RiVipCrownLine } from 'react-icons/ri'
+import Modal from 'shared/components/Modal'
 
 export const getServerSideProps = async (
   context: GetServerSidePropsContext,
@@ -76,14 +78,13 @@ export const getServerSideProps = async (
 
 const SpaceUserSettings = () => {
   const router = useRouter()
-  const pathId = String(router.query.id)
-  const id = pathId
+  const id = String(router.query.id)
 
   const { data } = useQuery(['space', id, 'users'], `/api/spaces/${id}/users`)
 
   const permissions = useQuery(
-    ['permissions', pathId],
-    `/api/spaces/${pathId}/permissions`,
+    ['permissions', id],
+    `/api/spaces/${id}/permissions`,
   )
 
   const canEdit =
@@ -117,7 +118,7 @@ const SpaceUserSettings = () => {
           <div className="bg-white px-8 py-8 rounded-3xl shadow-2xl">
             <div className="flex items-center justify-between">
               <h1 className="font-bold text-xl">Users</h1>
-              {canEdit && <InviteButton id={pathId} />}
+              {canEdit && <InviteButton id={id} />}
             </div>
             {!data ? (
               <div className="m-auto">
@@ -150,6 +151,8 @@ const PermissionsForm = ({ data, isOwner }) => {
     return state
   })
   const [wasEdited, setWasEdited] = useState(false)
+  const [removeModal, setRemoveModal] = useState<string | null>(null)
+  const [transferModal, setTransferModal] = useState<string | null>(null)
 
   const { mutate } = useSWRConfig()
 
@@ -159,7 +162,8 @@ const PermissionsForm = ({ data, isOwner }) => {
     {
       onSuccess: () => {
         toast.success('User was successfully removed from space')
-        mutate(generateKey('space', String(id), 'users'))
+        mutate(generateKey('space', id, 'users'))
+        setRemoveModal(null)
       },
       onError: () => {
         toast.error('There was an error removing the user from space')
@@ -172,11 +176,27 @@ const PermissionsForm = ({ data, isOwner }) => {
     {
       onSuccess: () => {
         toast.success('Permissions were successfully updated')
-        mutate(generateKey('space', String(id), 'users'))
+        mutate(generateKey('space', id, 'users'))
         setWasEdited(false)
       },
       onError: () => {
         toast.error('There was an error updating the permissions')
+      },
+    },
+  )
+
+  const transferOwner = useRequest(
+    (userId: string) =>
+      request.patch(`/api/spaces/${id}/transfer-ownership`, userId),
+    {
+      onSuccess: () => {
+        toast.success('The ownership was successfully transferred')
+        mutate(generateKey('space', id, 'users'))
+        mutate(generateKey('permissions', id))
+        setTransferModal(null)
+      },
+      onError: () => {
+        toast.error('There was an error transferring the ownership')
       },
     },
   )
@@ -192,8 +212,61 @@ const PermissionsForm = ({ data, isOwner }) => {
     })
   }
 
+  const closeRemoveModal = () => setRemoveModal(null)
+  const closeTransferModal = () => setTransferModal(null)
+
   return (
     <>
+      <Modal
+        visible={!!removeModal || deleteUser.isLoading}
+        close={closeRemoveModal}
+      >
+        <div className="p-4">
+          <h1 className="text-2xl font-bold text-red-500">Careful!</h1>
+          <p>Are you sure you want to remove this user?</p>
+          <div className="flex justify-end mt-8">
+            <Button color="light" onClick={closeRemoveModal}>
+              Cancel
+            </Button>
+            <Button
+              color="red"
+              className="ml-2"
+              onClick={() => deleteUser.send(removeModal as string)}
+              disabled={deleteUser.isLoading}
+            >
+              {deleteUser.isLoading && (
+                <CgSpinner className="animate-spin mr-2 -ml-2" />
+              )}
+              Remove
+            </Button>
+          </div>
+        </div>
+      </Modal>
+      <Modal
+        visible={!!transferModal || transferOwner.isLoading}
+        close={closeTransferModal}
+      >
+        <div className="p-4">
+          <h1 className="text-2xl font-bold text-blue-600">Attention!</h1>
+          <p>Are you sure you want to transfer ownership?</p>
+          <div className="flex justify-end mt-8">
+            <Button color="light" onClick={closeTransferModal}>
+              Cancel
+            </Button>
+            <Button
+              color="blue"
+              className="ml-2"
+              onClick={() => transferOwner.send(transferModal as string)}
+              disabled={transferOwner.isLoading}
+            >
+              {transferOwner.isLoading && (
+                <CgSpinner className="animate-spin mr-2 -ml-2" />
+              )}
+              Transfer
+            </Button>
+          </div>
+        </div>
+      </Modal>
       <table className="mt-8 w-full">
         <thead>
           <tr>
@@ -214,20 +287,24 @@ const PermissionsForm = ({ data, isOwner }) => {
                 {spaceUser.user.name}
               </td>
               <td>
-                <InputCheckboxPure
-                  checked={state?.[spaceUser.userId]?.canInvite}
-                  onChange={updatePermission(spaceUser.userId, 'canInvite')}
-                  disabled={spaceUser.isOwner || !isOwner}
-                  className="p-3 w-full flex justify-center"
-                />
+                {!spaceUser.isOwner && (
+                  <InputCheckboxPure
+                    checked={state?.[spaceUser.userId]?.canInvite}
+                    onChange={updatePermission(spaceUser.userId, 'canInvite')}
+                    disabled={!isOwner}
+                    className="p-3 w-full flex justify-center"
+                  />
+                )}
               </td>
               <td>
-                <InputCheckboxPure
-                  checked={state?.[spaceUser.userId]?.canEdit}
-                  onChange={updatePermission(spaceUser.userId, 'canEdit')}
-                  disabled={spaceUser.isOwner || !isOwner}
-                  className="p-3 w-full flex justify-center"
-                />
+                {!spaceUser.isOwner && (
+                  <InputCheckboxPure
+                    checked={state?.[spaceUser.userId]?.canEdit}
+                    onChange={updatePermission(spaceUser.userId, 'canEdit')}
+                    disabled={!isOwner}
+                    className="p-3 w-full flex justify-center"
+                  />
+                )}
               </td>
               <td className="p-3 flex justify-end">
                 {!spaceUser.isOwner && isOwner && (
@@ -236,9 +313,29 @@ const PermissionsForm = ({ data, isOwner }) => {
                       disabled={deleteUser.isLoading}
                       color="red-link"
                       hasIcon
-                      onClick={() => deleteUser.send(spaceUser.userId)}
+                      onClick={() => setRemoveModal(spaceUser.userId)}
                     >
-                      <FiTrash2 />
+                      {deleteUser.isLoading ? (
+                        <CgSpinner className="animate-spin" />
+                      ) : (
+                        <FiTrash2 />
+                      )}
+                    </Button>
+                  </Tooltip>
+                )}
+                {!spaceUser.isOwner && isOwner && (
+                  <Tooltip value="Transfer ownership" className="ml-2">
+                    <Button
+                      disabled={transferOwner.isLoading}
+                      color="blue-link"
+                      hasIcon
+                      onClick={() => setTransferModal(spaceUser.userId)}
+                    >
+                      {transferOwner.isLoading ? (
+                        <CgSpinner className="animate-spin" />
+                      ) : (
+                        <RiVipCrownLine />
+                      )}
                     </Button>
                   </Tooltip>
                 )}
