@@ -37,8 +37,8 @@ model DraftPlugin {
 
   source      File?
 
-  authorId    String
-  author      DeveloperUser    @relation(fields: [authorId], references: [id])
+  authorId    String?
+  author      DeveloperUser?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
 
   published   PublishedPlugin?
 
@@ -60,11 +60,13 @@ model PublishedPlugin {
 
   source      File?
 
-  authorId    String
-  author      DeveloperUser    @relation(fields: [authorId], references: [id])
+  authorId    String?
+  author      DeveloperUser?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
 
-  draftId     String
-  draft       DraftPlugin      @relation(fields: [draftId], references: [id])
+  draftId     String?
+  draft       DraftPlugin?      @relation(fields: [draftId], references: [id], onDelete: SetNull)
+
+  isDeleted   Boolean          @default(false)
 
   minWidth    Int              @default(1)
   maxWidth    Int              @default(4)
@@ -207,10 +209,10 @@ model PluginLog {
   date        DateTime         @default(now())
   content     String
 
-  admin       AdminUser?       @relation(fields: [adminId], references: [id])
+  admin       AdminUser?       @relation(fields: [adminId], references: [id], onDelete: SetNull)
   adminId     String?
 
-  plugin      DraftPlugin      @relation(fields: [pluginId], references: [id])
+  plugin      DraftPlugin      @relation(fields: [pluginId], references: [id], onDelete: Cascade)
   pluginId    String
 }
 
@@ -232,7 +234,7 @@ model Invite {
   createdAt   DateTime         @default(now())
   expiresAt   DateTime?         
 
-  space       Space            @relation(fields: [spaceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  space       Space            @relation(fields: [spaceId], references: [id], onDelete: Cascade)
   spaceId     String
 }
 
@@ -241,10 +243,10 @@ model SpaceUser {
   canEdit     Boolean          @default(false)
   canInvite   Boolean          @default(false)
 
-  user        RegularUser      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user        RegularUser      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      String
 
-  space       Space            @relation(fields: [spaceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  space       Space            @relation(fields: [spaceId], references: [id], onDelete: Cascade)
   spaceId     String
 
   @@unique([userId, spaceId])
@@ -255,12 +257,12 @@ model SpacePlugin {
   top         Int
   width       Int
   height      Int
-  data        Json               @default("{}")
+  data        Json                @default("{}")
 
-  plugin      PublishedPlugin    @relation(fields: [pluginId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  plugin      PublishedPlugin?    @relation(fields: [pluginId], references: [id])
   pluginId    String
 
-  space       Space              @relation(fields: [spaceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  space       Space               @relation(fields: [spaceId], references: [id], onDelete: Cascade)
   spaceId     String
 
   @@unique([pluginId, spaceId])
