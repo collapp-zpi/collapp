@@ -204,7 +204,7 @@ const PermissionsForm = ({ data, isOwner }) => {
         setRemoveModal(null)
       },
       onError: () => {
-        toast.error('There was an error removing the user from space')
+        toast.error('There was an error while removing the user from space')
       },
     },
   )
