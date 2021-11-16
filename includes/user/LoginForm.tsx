@@ -45,10 +45,7 @@ export const LoginForm = () => {
 
   return (
     <div>
-      <Button
-        className="w-full"
-        onClick={() => signIn('google', { redirect: true })}
-      >
+      <Button className="w-full" onClick={() => signIn('google')}>
         <BsGoogle className="-ml-2 mr-2" /> Sign with Google
       </Button>
       <div className="flex items-center my-8">
