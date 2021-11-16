@@ -1,4 +1,4 @@
-import NextAuth from 'next-auth'
+import NextAuth, { Account, Profile, User } from 'next-auth'
 import EmailProvider from 'next-auth/providers/email'
 import GoogleProvider from 'next-auth/providers/google'
 import { PrismaExtendedAdapter } from 'shared/utils/PrismaExtendedAdapter'
@@ -35,6 +35,48 @@ export default NextAuth({
     async session({ session, user }) {
       if (session) session.userId = user.id
       return session
+    },
+    async signIn({ user, account, profile }) {
+      const regularUser = await prisma?.regularUser.findFirst({
+        where: {
+          email: user.email,
+        },
+        include: {
+          accounts: true,
+        },
+      })
+
+      if (!!regularUser && !regularUser.accounts.length) {
+        await prisma?.regularUser.update({
+          where: {
+            id: regularUser.id,
+          },
+          data: {
+            name: user.name,
+            image: user.image,
+          },
+        })
+
+        await prisma?.regularAccount.create({
+          data: {
+            type: account.type,
+            provider: account.provider,
+            providerAccountId: account.providerAccountId,
+            access_token: account.access_token,
+            expires_at: account.expires_at,
+            token_type: account.token_type,
+            scope: account.scope,
+            id_token: account.id_token,
+            user: {
+              connect: {
+                id: regularUser.id,
+              },
+            },
+          },
+        })
+      }
+
+      return true
     },
   },
 })
