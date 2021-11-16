@@ -14,6 +14,8 @@ import { Layout } from 'layouts/Layout'
 import { withAuth } from 'shared/hooks/useAuth'
 import { CgSpinner } from 'react-icons/cg'
 import { Tooltip } from 'shared/components/Tooltip'
+import React from 'react'
+import InviteButton from 'includes/invitations/InviteButton'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.query
@@ -26,6 +28,18 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     },
   })
 
+  const permissions = await fetch(
+    `${process.env.BASE_URL}/api/spaces/${id}/permissions`,
+    {
+      method: 'GET',
+      headers: {
+        ...(context?.req?.headers?.cookie && {
+          cookie: context.req.headers.cookie,
+        }),
+      },
+    },
+  )
+
   if (!res.ok) {
     return {
       props: {
@@ -34,10 +48,19 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     }
   }
 
+  if (!permissions.ok) {
+    return {
+      props: {
+        error: await permissions.json(),
+      },
+    }
+  }
+
   return {
     props: {
       fallback: {
         [generateKey('space', String(id))]: await res.json(),
+        [generateKey('permissions', String(id))]: await permissions.json(),
       },
     },
   }
@@ -87,6 +110,10 @@ const Space = () => {
   const router = useRouter()
   const pathId = String(router.query.id)
   const { data, error } = useQuery(['space', pathId], `/api/spaces/${pathId}`)
+  const permissions = useQuery(
+    ['permissions', pathId],
+    `/api/spaces/${pathId}/permissions`,
+  )
 
   const { id, name, description, plugins } = data || {}
 
@@ -104,14 +131,20 @@ const Space = () => {
           <GoChevronLeft className="mr-2 -ml-2" />
           Back
         </Button>
-        <Button
-          color="light"
-          onClick={() => router.push(`/spaces/${id}/settings`)}
-          className="mb-4"
-        >
-          <FiSettings className="mr-2 -ml-2" />
-          Settings
-        </Button>
+        <div className="flex space-x-4">
+          {!!permissions.data && permissions.data.canInvite && (
+            <InviteButton id={pathId} />
+          )}
+
+          <Button
+            color="light"
+            onClick={() => router.push(`/spaces/${id}/settings`)}
+            className="mb-4"
+          >
+            <FiSettings className="mr-2 -ml-2" />
+            Settings
+          </Button>
+        </div>
       </div>
       {!!error && (
         <div className="mt-12">

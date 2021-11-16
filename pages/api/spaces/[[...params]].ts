@@ -1,7 +1,9 @@
 import { prisma } from 'shared/utils/prismaClient'
 import {
+  BadRequestException,
   Body,
   createHandler,
+  Delete,
   Get,
   NotFoundException,
   Param,
@@ -39,6 +41,16 @@ type UpdateSpacePluginsItem = {
   height: number
   width: number
 }
+
+type UpdateSpaceUserItem = {
+  canEdit: boolean
+  canInvite: boolean
+}
+
+type UpdateSpaceUserPermissions = {
+  [key: string]: UpdateSpaceUserItem
+}
+
 export class CreateInviteDTO {
   @IsNotEmpty({ message: 'Timeframe is required' })
   timeframe!: string
@@ -293,7 +305,7 @@ class Spaces {
         'Users outside the space cannot generate invitations.',
       )
     }
-    if (!spaceUser.canInvite) {
+    if (!spaceUser.canInvite && !spaceUser.isOwner) {
       throw new UnauthorizedException(
         'Only users with invite permisions can generate invitations.',
       )
@@ -333,6 +345,249 @@ class Spaces {
     })
 
     return invite
+  }
+
+  @Get('/:id/users')
+  async getSpaceUsers(@Param('id') id: string, @User user: RequestUser) {
+    const space = await prisma.space.findFirst({
+      where: {
+        id: id,
+      },
+    })
+
+    if (!space) {
+      throw new NotFoundException('The space does not exist.')
+    }
+
+    const spaceUser = await prisma.spaceUser.findFirst({
+      where: {
+        spaceId: id,
+        userId: user.id,
+      },
+    })
+
+    if (!spaceUser) {
+      throw new UnauthorizedException(
+        'Users outside the space cannot view space members.',
+      )
+    }
+
+    return await prisma.spaceUser.findMany({
+      where: {
+        spaceId: id,
+      },
+      include: {
+        user: true,
+      },
+    })
+  }
+
+  @Get('/:id/permissions')
+  async getPermissions(@Param('id') id: string, @User user: RequestUser) {
+    const space = await prisma.space.findFirst({
+      where: {
+        id: id,
+      },
+    })
+
+    if (!space) {
+      throw new NotFoundException('The space does not exist.')
+    }
+
+    const spaceUser = await prisma.spaceUser.findFirst({
+      where: {
+        spaceId: id,
+        userId: user.id,
+      },
+      select: {
+        isOwner: true,
+        canEdit: true,
+        canInvite: true,
+      },
+    })
+
+    if (!spaceUser) {
+      throw new UnauthorizedException('User is not a member of this space.')
+    }
+
+    return spaceUser
+  }
+
+  @Delete('/:id/user/:userId')
+  async deleteSpaceUser(
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+    @User user: RequestUser,
+  ) {
+    const space = await prisma.space.findFirst({
+      where: {
+        id: id,
+      },
+    })
+
+    if (!space) {
+      throw new NotFoundException('The space does not exist.')
+    }
+
+    const spaceUser = await prisma.spaceUser.findFirst({
+      where: {
+        spaceId: id,
+        userId: user.id,
+      },
+    })
+
+    if (!spaceUser) {
+      throw new UnauthorizedException(
+        'Users outside the space cannot remove users.',
+      )
+    }
+
+    if (!spaceUser.canInvite && !spaceUser.isOwner) {
+      throw new UnauthorizedException(
+        'Only users with invite permisions can remove users.',
+      )
+    }
+
+    const spaceUserToDelete = await prisma.spaceUser.findFirst({
+      where: { userId: userId },
+    })
+
+    if (!spaceUserToDelete) {
+      throw new BadRequestException(
+        'Requested user to remove is not a member of this space.',
+      )
+    }
+
+    if (spaceUserToDelete.isOwner) {
+      throw new BadRequestException(
+        'Requested user to remove is an owner of the space.',
+      )
+    }
+
+    return await prisma.spaceUser.delete({
+      where: {
+        userId_spaceId: {
+          userId: userId,
+          spaceId: id,
+        },
+      },
+    })
+  }
+
+  @Patch(`/:id/permissions`)
+  async updatePermissions(
+    @Param('id') id: string,
+    @User user: RequestUser,
+    @Body() body: UpdateSpaceUserPermissions,
+  ) {
+    const space = await prisma.space.findFirst({
+      where: { id },
+    })
+
+    if (!space) {
+      throw new NotFoundException('The space does not exist.')
+    }
+
+    const spaceUser = await prisma.spaceUser.findFirst({
+      where: {
+        spaceId: id,
+        userId: user.id,
+      },
+    })
+
+    if (!spaceUser) {
+      throw new UnauthorizedException(
+        'Users outside the space cannot update permissions.',
+      )
+    }
+
+    if (!spaceUser.isOwner) {
+      throw new UnauthorizedException(
+        'Only space owners can update persmissions.',
+      )
+    }
+
+    const update = Object.entries(body).map(([userId, data]) => ({
+      where: { userId },
+      data,
+    }))
+
+    return await prisma.space.update({
+      where: { id },
+      data: {
+        users: {
+          updateMany: update,
+        },
+      },
+    })
+  }
+
+  @Patch('/:id/transfer-ownership')
+  async transferOwnerShip(
+    @Param('id') id: string,
+    @User user: RequestUser,
+    @Body() body: string,
+  ) {
+    const space = await prisma.space.findFirst({
+      where: { id },
+    })
+
+    if (!space) {
+      throw new NotFoundException('The space does not exist.')
+    }
+
+    const spaceUser = await prisma.spaceUser.findFirst({
+      where: {
+        spaceId: id,
+        userId: user.id,
+      },
+    })
+
+    if (!spaceUser) {
+      throw new UnauthorizedException(
+        'Users outside the space cannot transfer ownership.',
+      )
+    }
+
+    if (!spaceUser.isOwner) {
+      throw new UnauthorizedException(
+        'Only space owner can transfer ownership.',
+      )
+    }
+
+    if (user.id === body) {
+      throw new BadRequestException(
+        'Cannot transfer ownership to the same user.',
+      )
+    }
+
+    const update = [
+      {
+        where: { userId: spaceUser.userId },
+        data: {
+          canEdit: true,
+          canInvite: true,
+          isOwner: false,
+        },
+      },
+      {
+        where: { userId: body },
+        data: {
+          canEdit: true,
+          canInvite: true,
+          isOwner: true,
+        },
+      },
+    ]
+
+    return await prisma.space.update({
+      where: { id },
+      data: {
+        users: {
+          updateMany: update,
+        },
+      },
+    })
   }
 }
 
