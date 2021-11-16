@@ -273,7 +273,7 @@ const InputPhotoModal = ({ value, close, onSave }: InputPhotoModalProps) => {
   return (
     <Modal visible={!!value}>
       <div
-        className="p-8 overflow-hidden rounded-2xl"
+        className="p-8 overflow-hidden rounded-3xl"
         onPointerDown={handlePointerDown}
       >
         <CutoffContainer className="relative">

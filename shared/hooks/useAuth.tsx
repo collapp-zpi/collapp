@@ -1,7 +1,7 @@
 import { ComponentType } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
-import { Loading } from 'layouts/Loading'
+import { LogoSpinner } from 'shared/components/LogoSpinner'
 
 export const withAuth = <T,>(Component: ComponentType<T>) =>
   function FallbackComponent(props: T) {
@@ -9,7 +9,11 @@ export const withAuth = <T,>(Component: ComponentType<T>) =>
     const router = useRouter()
 
     if (status === 'loading') {
-      return <Loading />
+      return (
+        <main className="bg-gray-100 flex flex-col h-full min-h-screen text-gray-500">
+          <LogoSpinner />
+        </main>
+      )
     }
 
     if (status === 'unauthenticated') {

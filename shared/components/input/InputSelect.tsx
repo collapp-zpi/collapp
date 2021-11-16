@@ -14,8 +14,8 @@ type OptionValue = {
 type InputSelectProps<Value extends OptionValue> = InputGeneric &
   Props<Value> & {
     options: readonly Value[]
-    value: string | null
-    onChange: (value: Value | null) => void
+    value?: string | null
+    onChange?: (value: Value | null) => void
     disabled?: boolean
   }
 

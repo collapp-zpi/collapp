@@ -2,12 +2,17 @@ import { useFilters } from 'shared/hooks/useFilters'
 import useSWR, { SWRConfiguration } from 'swr'
 import { generateKey } from 'shared/utils/object'
 
+interface Options extends SWRConfiguration {
+  ignoreFilters?: boolean
+}
+
 export const useQuery = (
   key: string[] | string | false,
   path: string,
-  options?: SWRConfiguration,
+  options?: Options,
 ) => {
-  const [filters] = useFilters()
+  const [_filters] = useFilters()
+  const filters = options?.ignoreFilters ? {} : _filters
   const filteredSearch = Object.entries(filters).reduce(
     (acc, [key, value]) => (value == null ? acc : { ...acc, [key]: value }),
     {},
