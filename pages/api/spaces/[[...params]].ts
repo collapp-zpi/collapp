@@ -413,6 +413,77 @@ class Spaces {
     return spaceUser
   }
 
+  @Delete('/:id')
+  async deleteSpace(@Param('id') id: string, @User user: RequestUser) {
+    const space = await prisma.space.findFirst({
+      where: {
+        id: id,
+      },
+    })
+
+    if (!space) {
+      throw new NotFoundException('The space does not exist.')
+    }
+
+    const spaceUser = await prisma.spaceUser.findFirst({
+      where: {
+        spaceId: id,
+        userId: user.id,
+      },
+    })
+
+    if (!spaceUser) {
+      throw new UnauthorizedException('Users is not a member of this space.')
+    }
+
+    if (!spaceUser.isOwner) {
+      throw new UnauthorizedException('Only space owners can delete spaces.')
+    }
+
+    return await prisma.space.delete({
+      where: {
+        id,
+      },
+    })
+  }
+
+  @Delete('/:id/user')
+  async leaveSpace(@Param('id') id: string, @User user: RequestUser) {
+    const space = await prisma.space.findFirst({
+      where: {
+        id: id,
+      },
+    })
+
+    if (!space) {
+      throw new NotFoundException('The space does not exist.')
+    }
+
+    const spaceUser = await prisma.spaceUser.findFirst({
+      where: {
+        spaceId: id,
+        userId: user.id,
+      },
+    })
+
+    if (!spaceUser) {
+      throw new UnauthorizedException('Users is not a member of this space.')
+    }
+
+    if (spaceUser.isOwner) {
+      throw new BadRequestException('Space owner cannot leave their spaces.')
+    }
+
+    return await prisma.spaceUser.delete({
+      where: {
+        userId_spaceId: {
+          userId: user.id,
+          spaceId: id,
+        },
+      },
+    })
+  }
+
   @Delete('/:id/user/:userId')
   async deleteSpaceUser(
     @Param('id') id: string,
