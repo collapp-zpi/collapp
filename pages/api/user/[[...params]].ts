@@ -1,7 +1,9 @@
 import { prisma } from 'shared/utils/prismaClient'
 import {
+  BadRequestException,
   Body,
   createHandler,
+  Delete,
   Get,
   Patch,
   ValidationPipe,
@@ -41,6 +43,28 @@ class UserSettings {
     return await prisma.regularUser.update({
       where: { id: user.id },
       data: { ...body },
+    })
+  }
+
+  @Delete()
+  async deleteAccount(@User user: RequestUser) {
+    const isSpaceOwner = await prisma.spaceUser.findFirst({
+      where: {
+        userId: user.id,
+        isOwner: true,
+      },
+    })
+
+    if (!!isSpaceOwner) {
+      throw new BadRequestException(
+        'Account cannot be deleted when user owns spaces.',
+      )
+    }
+
+    return await prisma.regularUser.delete({
+      where: {
+        id: user.id,
+      },
     })
   }
 }

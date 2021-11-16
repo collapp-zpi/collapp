@@ -69,9 +69,7 @@ const InvitationList = ({
                   color="blue-link"
                   hasIcon
                   onClick={() =>
-                    handleCopy(
-                      `${process.env.BASE_URL}/invitation/${invite.id}`,
-                    )
+                    handleCopy(`${window.origin}/invitation/${invite.id}`)
                   }
                 >
                   <HiOutlineClipboardCopy />
