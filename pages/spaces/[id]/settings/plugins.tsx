@@ -309,6 +309,7 @@ const InnerPlugins = ({ plugins }: { plugins: Plugin[] }) => {
                     rowHeight={size * 10}
                     width={size * 5.4 * 10}
                     onLayoutChange={(data) => setLayout(data)}
+                    resizeHandles={['s', 'se', 'e']}
                   >
                     {layout.map(generateItem)}
                   </GridLayout>

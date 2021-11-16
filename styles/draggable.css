@@ -57,3 +57,21 @@
   border-bottom: 2px solid currentColor;
   cursor: nwse-resize;
 }
+
+.react-grid-item > .react-resizable-handle.react-resizable-handle-s {
+  width: 3em;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  border-bottom: 2px solid currentColor;
+  cursor: ns-resize;
+}
+
+.react-grid-item > .react-resizable-handle.react-resizable-handle-e {
+  height: 3em;
+  right: 0;
+  transform: translateY(-50%);
+  top: 50%;
+  border-right: 2px solid currentColor;
+  cursor: ew-resize;
+}
