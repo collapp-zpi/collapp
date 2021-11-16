@@ -28,6 +28,7 @@ import { useQuery } from 'shared/hooks/useQuery'
 import { ErrorInfo } from 'shared/components/ErrorInfo'
 import { LogoSpinner } from 'shared/components/LogoSpinner'
 import { withFallback } from 'shared/hooks/useApiForm'
+import { useSWRConfig } from 'swr'
 
 interface Plugin extends SpacePlugin {
   plugin: PublishedPlugin
@@ -196,6 +197,7 @@ const SpacePluginSettings = () => {
 export default withAuth(withFallback(SpacePluginSettings))
 
 const InnerPlugins = ({ plugins }: { plugins: Plugin[] }) => {
+  const { mutate } = useSWRConfig()
   const [mapped, setMapped] = useState(() => {
     const mapped: MappedType = {}
 
@@ -229,6 +231,7 @@ const InnerPlugins = ({ plugins }: { plugins: Plugin[] }) => {
   const request = useRequest(updateSpacePlugins(id), {
     onSuccess: () => {
       toast.success('The plugins have been updated successfully.')
+      mutate(generateKey('space', id, 'plugins'))
     },
     onError: ({ message }) => {
       toast.error(

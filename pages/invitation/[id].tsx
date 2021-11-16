@@ -1,7 +1,7 @@
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
-import React, { useLayoutEffect } from 'react'
+import React, { useEffect } from 'react'
 import toast from 'react-hot-toast'
 import Button from 'shared/components/button/Button'
 import { LogoSpinner } from 'shared/components/LogoSpinner'
@@ -63,14 +63,14 @@ const Invitation = ({
     },
   )
 
-  useLayoutEffect(() => {
-    if (!error) return
+  useEffect(() => {
+    if (!error || error?.statusCode === 401) return
 
     setTimeout(() => toast.error(error.message), 0)
     router.push(`/spaces`)
   }, [error, router])
 
-  if (status === 'loading' || error) {
+  if (status === 'loading') {
     return (
       <div className="flex justify-center align-middle h-full min-h-screen">
         <LogoSpinner />
@@ -89,6 +89,14 @@ const Invitation = ({
           <LoginForm />
         </div>
       </Layout>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center align-middle h-full min-h-screen">
+        <LogoSpinner />
+      </div>
     )
   }
 

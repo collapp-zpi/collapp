@@ -63,6 +63,10 @@ const PluginList = ({ mapped, setMapped, setLayout }: PluginListProps) => {
         x: 0,
         w: plugin.minWidth,
         h: plugin.minHeight,
+        minW: plugin.minWidth,
+        maxW: plugin.maxWidth,
+        minH: plugin.minHeight,
+        maxH: plugin.maxHeight,
       },
     ])
   }
