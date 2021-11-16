@@ -13,10 +13,14 @@ import { InputTextPure } from 'shared/components/input/InputText'
 import copy from 'copy-to-clipboard'
 import { HiOutlineClipboardCopy } from 'react-icons/hi'
 import { Tooltip } from 'shared/components/Tooltip'
+import { useSWRConfig } from 'swr'
+import { generateKey } from 'shared/utils/object'
 
-const InviteButton = ({ id }: { id: string }) => {
+const InviteButton = ({ spaceId }: { spaceId: string }) => {
   const [visible, setVisible] = useState(false)
   const [link, setLink] = useState(null)
+
+  const { mutate } = useSWRConfig()
 
   const options: any = [
     { label: '1 day', value: '1' },
@@ -33,7 +37,10 @@ const InviteButton = ({ id }: { id: string }) => {
     toast.error(data.message)
   }
 
-  const onSuccess = ({ id }) => setLink(id)
+  const onSuccess = ({ id }) => {
+    setLink(id)
+    mutate(generateKey('invitations', spaceId))
+  }
 
   const url = `${process.env.BASE_URL}/invitation/${link}`
 
@@ -80,7 +87,9 @@ const InviteButton = ({ id }: { id: string }) => {
         ) : (
           <div>
             <UncontrolledForm
-              query={(data) => request.post(`/api/spaces/${id}/invite`, data)}
+              query={(data) =>
+                request.post(`/api/spaces/${spaceId}/invite`, data)
+              }
               {...{ schema, onSuccess, onError }}
               className="flex flex-col"
             >

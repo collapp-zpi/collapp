@@ -5,6 +5,8 @@ import {
   NotFoundException,
   BadRequestException,
   Post,
+  UnauthorizedException,
+  Delete,
 } from '@storyofams/next-api-decorators'
 import { prisma } from 'shared/utils/prismaClient'
 import { NextAuthGuard, RequestUser, User } from 'shared/utils/apiDecorators'
@@ -63,6 +65,72 @@ class Invitations {
             id: invitation.spaceId,
           },
         },
+      },
+    })
+  }
+
+  @Delete('/:id')
+  async deleteInvitation(@Param('id') id: string, @User user: RequestUser) {
+    const invitation = await prisma.invite.findFirst({
+      where: { id },
+    })
+
+    if (!invitation) {
+      throw new NotFoundException('The invitation was not found.')
+    }
+
+    const spaceUser = await prisma.spaceUser.findFirst({
+      where: { spaceId: invitation.spaceId, userId: user.id },
+    })
+
+    if (!spaceUser) {
+      throw new UnauthorizedException(
+        'Users outside the space cannot remove invitations.',
+      )
+    }
+
+    if (!spaceUser.canInvite && !spaceUser.isOwner) {
+      throw new UnauthorizedException(
+        'Only users with permissions can delete invites.',
+      )
+    }
+
+    return await prisma.invite.delete({
+      where: {
+        id,
+      },
+    })
+  }
+
+  @Get('/space/:id')
+  async getSpaceInvitations(@Param('id') id: string, @User user: RequestUser) {
+    const space = await prisma.space.findFirst({
+      where: { id },
+    })
+
+    if (!space) {
+      throw new NotFoundException('The space was not found.')
+    }
+
+    const spaceUser = await prisma.spaceUser.findFirst({
+      where: { spaceId: space.id, userId: user.id },
+    })
+
+    if (!spaceUser) {
+      throw new UnauthorizedException(
+        'Users outside the space cannot view invitations.',
+      )
+    }
+
+    if (!spaceUser.canInvite && !spaceUser.isOwner) {
+      throw new UnauthorizedException(
+        'Only users with permissions can view invites.',
+      )
+    }
+
+    return await prisma.invite.findMany({
+      where: {
+        spaceId: id,
       },
     })
   }
