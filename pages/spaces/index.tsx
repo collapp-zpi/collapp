@@ -44,7 +44,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
 const Spaces = () => {
   const { data, error } = useQuery('spaces', '/api/spaces')
-  console.log(data)
 
   return (
     <Layout>

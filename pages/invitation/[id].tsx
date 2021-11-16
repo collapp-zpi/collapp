@@ -1,15 +1,22 @@
-import { GetServerSideProps, InferGetServerSidePropsType } from 'next'
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
-import React from 'react'
+import React, { useLayoutEffect } from 'react'
 import toast from 'react-hot-toast'
 import Button from 'shared/components/button/Button'
 import { LogoSpinner } from 'shared/components/LogoSpinner'
 import request from 'shared/utils/request'
 import { LoginForm } from 'includes/user/LoginForm'
 import { Layout } from 'layouts/Layout'
+import { defaultPluginIcon } from 'config/defaultIcons'
+import { truncate } from 'shared/utils/text'
+import useRequest from 'shared/hooks/useRequest'
+import { CgSpinner } from 'react-icons/cg'
+import { FiCheck } from 'react-icons/fi'
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getServerSideProps = async (
+  context: GetServerSidePropsContext,
+) => {
   const { id } = context.query
   const res = await fetch(`${process.env.BASE_URL}/api/invitation/${id}`, {
     method: 'GET',
@@ -24,7 +31,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     return {
       props: {
         error: await res.json(),
-        isError: true,
       },
     }
   }
@@ -36,14 +42,35 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 }
 
-const Invitation = (
-  props: InferGetServerSidePropsType<typeof getServerSideProps>,
-) => {
+const Invitation = ({
+  error,
+  invitation,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { status } = useSession()
   const router = useRouter()
   const pathId = String(router.query.id)
 
-  if (status === 'loading') {
+  const invitationRequest = useRequest(
+    () => request.post(`/api/invitation/${pathId}`),
+    {
+      onSuccess: () => {
+        toast.success('You have successfully joined the space')
+        router.push(`/spaces/${invitation.spaceId}`)
+      },
+      onError: () => {
+        toast.success('An error occurred while joining the space')
+      },
+    },
+  )
+
+  useLayoutEffect(() => {
+    if (!error) return
+
+    setTimeout(() => toast.error(error.message), 0)
+    router.push(`/spaces`)
+  }, [error, router])
+
+  if (status === 'loading' || error) {
     return (
       <div className="flex justify-center align-middle h-full min-h-screen">
         <LogoSpinner />
@@ -53,28 +80,50 @@ const Invitation = (
 
   if (status === 'unauthenticated') {
     return (
-      <div>
-        <LoginForm />
-      </div>
+      <Layout>
+        <h1 className="text-4xl font-bold text-center mt-16">
+          Welcome to Collapp!
+        </h1>
+        <h3 className="text-xl text-center">Please login to continue</h3>
+        <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md mx-auto mt-16">
+          <LoginForm />
+        </div>
+      </Layout>
     )
-  }
-
-  const handleAccept = async () => {
-    await request.post(`/api/invitation/${pathId}`)
-    toast.success('You were added to the space')
-    router.push(`/spaces/${props.invitation.spaceId}`)
-  }
-
-  if (props.isError) {
-    return <Layout>{props.error.message}</Layout>
   }
 
   return (
     <Layout>
-      <Button onClick={handleAccept}>Accept</Button>
-      <Button color="red" onClick={() => router.push('/')}>
-        Decline
-      </Button>
+      <h3 className="text-lg text-center mt-16">You have been invited to</h3>
+
+      <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-lg mx-auto mt-8">
+        <img
+          src={invitation.space.icon || defaultPluginIcon}
+          className="rounded-25 w-16 h-16 shadow-xl mx-auto"
+        />
+        <h3 className="text-3xl text-center font-bold mt-2">
+          {invitation.space.name}
+        </h3>
+        {!!invitation.space?.description && (
+          <p className="text-center mt-2">
+            {truncate(invitation.space.description)}
+          </p>
+        )}
+      </div>
+
+      <div className="mt-8 max-w-lg mx-auto flex justify-end">
+        <Button color="light" onClick={() => router.push('/spaces')}>
+          Ignore
+        </Button>
+        <Button onClick={invitationRequest.send} className="ml-2">
+          {invitationRequest.isLoading ? (
+            <CgSpinner className="animate-spin mr-2 -ml-2" />
+          ) : (
+            <FiCheck strokeWidth={4} className="mr-2 -ml-2" />
+          )}
+          Accept
+        </Button>
+      </div>
     </Layout>
   )
 }
