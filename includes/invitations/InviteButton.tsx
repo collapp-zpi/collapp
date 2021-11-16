@@ -9,10 +9,13 @@ import Modal from 'shared/components/Modal'
 import { object, string } from 'yup'
 import request from 'shared/utils/request'
 import { BiLink } from 'react-icons/bi'
+import { InputTextPure } from 'shared/components/input/InputText'
+import copy from 'copy-to-clipboard'
+import { HiOutlineClipboardCopy } from 'react-icons/hi'
+import { Tooltip } from 'shared/components/Tooltip'
 
 const InviteButton = ({ id }: { id: string }) => {
   const [visible, setVisible] = useState(false)
-  const [isGenerated, setIsGenerated] = useState(false)
   const [link, setLink] = useState(null)
 
   const options: any = [
@@ -30,13 +33,13 @@ const InviteButton = ({ id }: { id: string }) => {
     toast.error(data.message)
   }
 
-  const onSuccess = () => {
-    setIsGenerated(true)
-  }
+  const onSuccess = ({ id }) => setLink(id)
 
-  const query = async (data: any) => {
-    const response = await request.post(`/api/spaces/${id}/invite`, data)
-    setLink(response.id)
+  const url = `${process.env.BASE_URL}/invitation/${link}`
+
+  const handleCopy = () => {
+    copy(url)
+    toast.success('The link has been copied to the clipboard.')
   }
 
   return (
@@ -46,37 +49,56 @@ const InviteButton = ({ id }: { id: string }) => {
         Invite
       </Button>
       <Modal visible={visible} close={() => setVisible(false)}>
-        {isGenerated ? (
-          <div>
-            <p id="link">{`${process.env.BASE_URL}/invitation/${link}`}</p>
-            <Button onClick={() => setIsGenerated(false)}>
+        {!!link ? (
+          <div className="flex flex-col">
+            <div className="flex w-72">
+              <InputTextPure
+                readOnly
+                value={url}
+                label="Link"
+                className="flex-grow"
+              />
+              <Tooltip
+                value="Copy to clipboard"
+                className="ml-2"
+                innerClassName="h-full"
+              >
+                <Button onClick={handleCopy} hasIcon className="h-full">
+                  <HiOutlineClipboardCopy className="mx-2 text-xl" />
+                </Button>
+              </Tooltip>
+            </div>
+            <Button
+              color="light"
+              onClick={() => setLink(null)}
+              className="mt-4"
+            >
               <BiLink className="mr-2 -ml-2" />
-              Generate new link
+              Generate a new link
             </Button>
           </div>
         ) : (
           <div>
             <UncontrolledForm
-              {...{ schema, query, onSuccess, onError }}
-              className="flex"
+              query={(data) => request.post(`/api/spaces/${id}/invite`, data)}
+              {...{ schema, onSuccess, onError }}
+              className="flex flex-col"
             >
               <InputSelect
-                className="w-80"
+                className="w-72"
                 name="timeframe"
                 label="Expire at"
                 options={options}
                 onChange={(data: any) => {}}
                 isClearable={false}
+                isSearchable={false}
                 value={null}
-              ></InputSelect>
-              <SubmitButton className="h-12" name="Generate">
+              />
+              <SubmitButton className="mt-2">
                 <BiLink className="mr-2 -ml-2" />
                 Generate link
               </SubmitButton>
             </UncontrolledForm>
-            {!!link && (
-              <Button onClick={() => setIsGenerated(true)}>Back</Button>
-            )}
           </div>
         )}
       </Modal>
