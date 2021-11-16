@@ -24,6 +24,7 @@ import { Tooltip } from 'shared/components/Tooltip'
 import { CgSpinner } from 'react-icons/cg'
 import { RiVipCrownLine } from 'react-icons/ri'
 import Modal from 'shared/components/Modal'
+import InvitationList from 'includes/invitations/InvitationList'
 
 export const getServerSideProps = async (
   context: GetServerSidePropsContext,
@@ -50,6 +51,18 @@ export const getServerSideProps = async (
     },
   )
 
+  const invitations = await fetch(
+    `${process.env.BASE_URL}/api/invitation/space/${id}`,
+    {
+      method: 'GET',
+      headers: {
+        ...(context?.req?.headers?.cookie && {
+          cookie: context.req.headers.cookie,
+        }),
+      },
+    },
+  )
+
   if (!res.ok) {
     return {
       props: {
@@ -66,11 +79,20 @@ export const getServerSideProps = async (
     }
   }
 
+  if (!invitations.ok) {
+    return {
+      props: {
+        error: await permissions.json(),
+      },
+    }
+  }
+
   return {
     props: {
       fallback: {
         [generateKey('space', String(id), 'users')]: await res.json(),
         [generateKey('permissions', String(id))]: await permissions.json(),
+        [generateKey('invitations', String(id))]: await invitations.json(),
       },
     },
   }
@@ -81,6 +103,10 @@ const SpaceUserSettings = () => {
   const id = String(router.query.id)
 
   const { data } = useQuery(['space', id, 'users'], `/api/spaces/${id}/users`)
+  const invitations = useQuery(
+    ['invitations', id],
+    `/api/invitation/space/${id}`,
+  )
 
   const permissions = useQuery(
     ['permissions', id],
@@ -89,6 +115,12 @@ const SpaceUserSettings = () => {
 
   const canEdit =
     !!permissions.data && (permissions.data.canEdit || permissions.data.isOwner)
+
+  const canViewInvites =
+    !!invitations.data &&
+    invitations.data.length > 0 &&
+    !!permissions.data &&
+    (permissions.data.canInvite || permissions.data.isOwner)
 
   return (
     <Layout>
@@ -118,7 +150,7 @@ const SpaceUserSettings = () => {
           <div className="bg-white px-8 py-8 rounded-3xl shadow-2xl">
             <div className="flex items-center justify-between">
               <h1 className="font-bold text-xl">Users</h1>
-              {canEdit && <InviteButton id={id} />}
+              {canEdit && <InviteButton spaceId={id} />}
             </div>
             {!data ? (
               <div className="m-auto">
@@ -131,6 +163,12 @@ const SpaceUserSettings = () => {
               />
             )}
           </div>
+          {canViewInvites && (
+            <div className="bg-white mt-8 px-8 py-8 rounded-3xl shadow-2xl">
+              <h1 className="font-bold text-xl">Invitations</h1>
+              <InvitationList data={invitations.data} spaceId={id} />
+            </div>
+          )}
         </div>
       </div>
     </Layout>

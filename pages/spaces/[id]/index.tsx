@@ -133,7 +133,7 @@ const Space = () => {
         </Button>
         <div className="flex space-x-4">
           {!!permissions.data && permissions.data.canInvite && (
-            <InviteButton id={pathId} />
+            <InviteButton spaceId={pathId} />
           )}
 
           <Button
