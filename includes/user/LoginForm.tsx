@@ -64,6 +64,7 @@ export const LoginForm = () => {
           type="email"
           name="email"
           label="Email"
+          autoComplete="email"
           icon={MdAlternateEmail}
         />
         <SubmitButton className="mt-2" />
