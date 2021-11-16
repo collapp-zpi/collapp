@@ -3,7 +3,7 @@ import { PutObjectRequest } from 'aws-sdk/clients/s3'
 
 export const s3 = new AWS.S3({
   accessKeyId: process.env.AWS_KEY,
-  secretAccessKey: process.env.AWS_SECRET_KEY,
+  secretAccessKey: process.env.AWS_SECRET_KEY_COLLAPP,
 })
 
 export function getParams(key: string, body?: Buffer): PutObjectRequest {
