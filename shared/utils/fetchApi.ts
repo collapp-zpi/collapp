@@ -1,11 +1,9 @@
 import { GetServerSidePropsContext } from 'next'
 
-const baseUrl = process.env.VERCEL_URL || process.env.BASE_URL
-
 export const fetchApi =
   (path = '', options?: RequestInit) =>
   (context: GetServerSidePropsContext) =>
-    fetch(baseUrl + path, {
+    fetch(process.env.BASE_URL + path, {
       method: 'GET',
       ...options,
       headers: {
