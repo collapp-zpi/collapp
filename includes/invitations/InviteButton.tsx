@@ -9,16 +9,17 @@ import Modal from 'shared/components/Modal'
 import { object, string } from 'yup'
 import request from 'shared/utils/request'
 import { BiLink } from 'react-icons/bi'
-import { InputTextPure } from 'shared/components/input/InputText'
+import { InputText, InputTextPure } from 'shared/components/input/InputText'
 import copy from 'copy-to-clipboard'
 import { HiOutlineClipboardCopy } from 'react-icons/hi'
 import { Tooltip } from 'shared/components/Tooltip'
 import { useSWRConfig } from 'swr'
 import { generateKey } from 'shared/utils/object'
+import { MdAlternateEmail } from 'react-icons/md'
 
 const InviteButton = ({ spaceId }: { spaceId: string }) => {
   const [visible, setVisible] = useState(false)
-  const [link, setLink] = useState(null)
+  const [link, setLink] = useState<string | null>(null)
 
   const { mutate } = useSWRConfig()
 
@@ -37,7 +38,7 @@ const InviteButton = ({ spaceId }: { spaceId: string }) => {
     toast.error(data.message)
   }
 
-  const onSuccess = ({ id }) => {
+  const onSuccess = ({ id }: { id: string }) => {
     setLink(id)
     mutate(generateKey('invitations', spaceId))
   }
@@ -58,7 +59,34 @@ const InviteButton = ({ spaceId }: { spaceId: string }) => {
       <Modal visible={visible} close={() => setVisible(false)}>
         {!!link ? (
           <div className="flex flex-col">
-            <div className="flex w-72">
+            <span>Send invite to</span>
+            <div className="flex w-96">
+              <UncontrolledForm
+                className="flex"
+                query={(data: any) =>
+                  request.post(`/api/invitation/${link}/send`, data)
+                }
+                schema={object().shape({
+                  email: string().email().required(),
+                })}
+                onSuccess={() => {
+                  toast.success('Email was sent')
+                }}
+                onError={() => {
+                  toast.error('Email was not send.')
+                }}
+              >
+                <InputText
+                  type="email"
+                  name="email"
+                  label="Email"
+                  autoComplete="email"
+                  icon={MdAlternateEmail}
+                />
+                <SubmitButton className="mt-2">Send</SubmitButton>
+              </UncontrolledForm>
+            </div>
+            <div className="flex w-96">
               <InputTextPure
                 readOnly
                 value={url}
@@ -94,7 +122,7 @@ const InviteButton = ({ spaceId }: { spaceId: string }) => {
               className="flex flex-col"
             >
               <InputSelect
-                className="w-72"
+                className="w-96"
                 name="timeframe"
                 label="Expire at"
                 options={options}
