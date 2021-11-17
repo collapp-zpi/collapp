@@ -9,13 +9,13 @@ import Modal from 'shared/components/Modal'
 import { object, string } from 'yup'
 import request from 'shared/utils/request'
 import { BiLink } from 'react-icons/bi'
-import { InputText, InputTextPure } from 'shared/components/input/InputText'
+import { InputTextPure } from 'shared/components/input/InputText'
 import copy from 'copy-to-clipboard'
 import { HiOutlineClipboardCopy } from 'react-icons/hi'
 import { Tooltip } from 'shared/components/Tooltip'
 import { useSWRConfig } from 'swr'
 import { generateKey } from 'shared/utils/object'
-import { MdAlternateEmail } from 'react-icons/md'
+import SendInviteEmailForm from './SendInviteEmailForm'
 
 const InviteButton = ({ spaceId }: { spaceId: string }) => {
   const [visible, setVisible] = useState(false)
@@ -59,40 +59,16 @@ const InviteButton = ({ spaceId }: { spaceId: string }) => {
       <Modal visible={visible} close={() => setVisible(false)}>
         {!!link ? (
           <div className="flex flex-col">
-            <span className="text-center font-semibold text-xl mb-2 text-gray-600">
+            <span className="text-center font-semibold text-lg mb-2 text-gray-600">
               Send invite to:
             </span>
-            <UncontrolledForm
-              className="flex w-96 items-center"
-              query={(data: any) =>
-                request.post(`/api/invitation/${link}/send`, data)
-              }
-              schema={object().shape({
-                email: string().email().required(),
-              })}
-              onSuccess={() => {
-                toast.success('Email was sent')
-              }}
-              onError={() => {
-                toast.error('Email was not send.')
-              }}
-            >
-              <InputText
-                className="flex-1"
-                type="email"
-                name="email"
-                label="Email"
-                autoComplete="email"
-                icon={MdAlternateEmail}
-              />
-              <SubmitButton className="h-12 ml-2">Send</SubmitButton>
-            </UncontrolledForm>
-            <div className="flex items-center my-4">
+            <SendInviteEmailForm link={link} />
+            <div className="flex items-center my-8">
               <div className="flex-1 w-0.5 h-0.5 rounded-full mx-4 bg-gray-200" />
               <p>OR</p>
               <div className="flex-1 w-0.5 h-0.5 rounded-full mx-4 bg-gray-200" />
             </div>
-            <span className="text-center font-semibold text-xl mb-2 text-gray-600">
+            <span className="text-center font-semibold text-lg mb-2 text-gray-600">
               Copy link:
             </span>
             <div className="flex w-96">
