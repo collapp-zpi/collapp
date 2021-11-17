@@ -1,8 +1,9 @@
-import NextAuth, { Account, Profile, User } from 'next-auth'
+import NextAuth from 'next-auth'
 import EmailProvider from 'next-auth/providers/email'
 import GoogleProvider from 'next-auth/providers/google'
 import { PrismaExtendedAdapter } from 'shared/utils/PrismaExtendedAdapter'
 import { LoginEmail } from '@collapp/email-sdk'
+import { prisma } from 'shared/utils/prismaClient'
 
 export default NextAuth({
   providers: [
@@ -36,8 +37,8 @@ export default NextAuth({
       if (session) session.userId = user.id
       return session
     },
-    async signIn({ user, account, profile }) {
-      const regularUser = await prisma?.regularUser.findFirst({
+    async signIn({ user, account }) {
+      const regularUser = await prisma.regularUser.findFirst({
         where: {
           email: user.email,
         },
@@ -47,7 +48,7 @@ export default NextAuth({
       })
 
       if (!!regularUser && !regularUser.accounts.length) {
-        await prisma?.regularUser.update({
+        await prisma.regularUser.update({
           where: {
             id: regularUser.id,
           },
@@ -57,7 +58,7 @@ export default NextAuth({
           },
         })
 
-        await prisma?.regularAccount.create({
+        await prisma.regularAccount.create({
           data: {
             type: account.type,
             provider: account.provider,
