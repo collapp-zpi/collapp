@@ -59,33 +59,42 @@ const InviteButton = ({ spaceId }: { spaceId: string }) => {
       <Modal visible={visible} close={() => setVisible(false)}>
         {!!link ? (
           <div className="flex flex-col">
-            <span>Send invite to</span>
-            <div className="flex w-96">
-              <UncontrolledForm
-                className="flex"
-                query={(data: any) =>
-                  request.post(`/api/invitation/${link}/send`, data)
-                }
-                schema={object().shape({
-                  email: string().email().required(),
-                })}
-                onSuccess={() => {
-                  toast.success('Email was sent')
-                }}
-                onError={() => {
-                  toast.error('Email was not send.')
-                }}
-              >
-                <InputText
-                  type="email"
-                  name="email"
-                  label="Email"
-                  autoComplete="email"
-                  icon={MdAlternateEmail}
-                />
-                <SubmitButton className="mt-2">Send</SubmitButton>
-              </UncontrolledForm>
+            <span className="text-center font-semibold text-xl mb-2 text-gray-600">
+              Send invite to:
+            </span>
+            <UncontrolledForm
+              className="flex w-96 items-center"
+              query={(data: any) =>
+                request.post(`/api/invitation/${link}/send`, data)
+              }
+              schema={object().shape({
+                email: string().email().required(),
+              })}
+              onSuccess={() => {
+                toast.success('Email was sent')
+              }}
+              onError={() => {
+                toast.error('Email was not send.')
+              }}
+            >
+              <InputText
+                className="flex-1"
+                type="email"
+                name="email"
+                label="Email"
+                autoComplete="email"
+                icon={MdAlternateEmail}
+              />
+              <SubmitButton className="h-12 ml-2">Send</SubmitButton>
+            </UncontrolledForm>
+            <div className="flex items-center my-4">
+              <div className="flex-1 w-0.5 h-0.5 rounded-full mx-4 bg-gray-200" />
+              <p>OR</p>
+              <div className="flex-1 w-0.5 h-0.5 rounded-full mx-4 bg-gray-200" />
             </div>
+            <span className="text-center font-semibold text-xl mb-2 text-gray-600">
+              Copy link:
+            </span>
             <div className="flex w-96">
               <InputTextPure
                 readOnly
@@ -106,7 +115,7 @@ const InviteButton = ({ spaceId }: { spaceId: string }) => {
             <Button
               color="light"
               onClick={() => setLink(null)}
-              className="mt-4"
+              className="mt-6"
             >
               <BiLink className="mr-2 -ml-2" />
               Generate a new link
