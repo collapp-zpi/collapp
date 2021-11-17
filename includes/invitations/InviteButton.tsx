@@ -15,10 +15,11 @@ import { HiOutlineClipboardCopy } from 'react-icons/hi'
 import { Tooltip } from 'shared/components/Tooltip'
 import { useSWRConfig } from 'swr'
 import { generateKey } from 'shared/utils/object'
+import SendInviteEmailForm from './SendInviteEmailForm'
 
 const InviteButton = ({ spaceId }: { spaceId: string }) => {
   const [visible, setVisible] = useState(false)
-  const [link, setLink] = useState(null)
+  const [link, setLink] = useState<string | null>(null)
 
   const { mutate } = useSWRConfig()
 
@@ -37,7 +38,7 @@ const InviteButton = ({ spaceId }: { spaceId: string }) => {
     toast.error(data.message)
   }
 
-  const onSuccess = ({ id }) => {
+  const onSuccess = ({ id }: { id: string }) => {
     setLink(id)
     mutate(generateKey('invitations', spaceId))
   }
@@ -58,7 +59,19 @@ const InviteButton = ({ spaceId }: { spaceId: string }) => {
       <Modal visible={visible} close={() => setVisible(false)}>
         {!!link ? (
           <div className="flex flex-col">
-            <div className="flex w-72">
+            <span className="text-center font-semibold text-lg mb-2 text-gray-600">
+              Send invite to:
+            </span>
+            <SendInviteEmailForm link={link} />
+            <div className="flex items-center my-8">
+              <div className="flex-1 w-0.5 h-0.5 rounded-full mx-4 bg-gray-200" />
+              <p>OR</p>
+              <div className="flex-1 w-0.5 h-0.5 rounded-full mx-4 bg-gray-200" />
+            </div>
+            <span className="text-center font-semibold text-lg mb-2 text-gray-600">
+              Copy link:
+            </span>
+            <div className="flex w-96">
               <InputTextPure
                 readOnly
                 value={url}
@@ -78,7 +91,7 @@ const InviteButton = ({ spaceId }: { spaceId: string }) => {
             <Button
               color="light"
               onClick={() => setLink(null)}
-              className="mt-4"
+              className="mt-6"
             >
               <BiLink className="mr-2 -ml-2" />
               Generate a new link
@@ -94,7 +107,7 @@ const InviteButton = ({ spaceId }: { spaceId: string }) => {
               className="flex flex-col"
             >
               <InputSelect
-                className="w-72"
+                className="w-96"
                 name="timeframe"
                 label="Expire at"
                 options={options}

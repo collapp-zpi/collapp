@@ -7,9 +7,11 @@ import {
   Post,
   UnauthorizedException,
   Delete,
+  Body,
 } from '@storyofams/next-api-decorators'
 import { prisma } from 'shared/utils/prismaClient'
 import { NextAuthGuard, RequestUser, User } from 'shared/utils/apiDecorators'
+import { InviteEmail } from '@collapp/email-sdk'
 
 @NextAuthGuard()
 class Invitations {
@@ -67,6 +69,64 @@ class Invitations {
         },
       },
     })
+  }
+
+  @Post('/:id/send')
+  async sendInvitation(
+    @Param('id') id: string,
+    @User user: RequestUser,
+    @Body() body: { email: string },
+  ) {
+    const invitation = await prisma.invite.findFirst({
+      where: { id },
+      include: {
+        space: true,
+      },
+    })
+
+    if (!invitation) {
+      throw new NotFoundException('The invitation was not found.')
+    }
+
+    const spaceUser = await prisma.spaceUser.findFirst({
+      where: { spaceId: invitation.spaceId, userId: user.id },
+    })
+
+    if (!spaceUser) {
+      throw new UnauthorizedException(
+        'Users outside of space cannot send invites.',
+      )
+    }
+
+    if (!spaceUser.canInvite) {
+      throw new UnauthorizedException(
+        'Only user with invite permission can send invitations.',
+      )
+    }
+
+    if (!!invitation.expiresAt) {
+      const now = new Date()
+      const expiryTime = new Date(invitation.expiresAt)
+      if (now > expiryTime) {
+        throw new BadRequestException('Invitation is no longer active.')
+      }
+    }
+
+    await fetch('https://collapp-email-microservice.herokuapp.com/')
+    const mail = new InviteEmail(process.env.RABBIT_URL)
+    await mail.send({
+      to: body.email,
+      subject: `${user.name} invites you to space ${invitation.space.name}`,
+      secret: process.env.SECRET,
+      context: {
+        from: user.name ? user.name : 'Collapp user',
+        space: invitation.space.name,
+        url: `${process.env.BASE_URL}/invitation/${id}`,
+      },
+    })
+    mail.disconnect()
+
+    return invitation
   }
 
   @Delete('/:id')
