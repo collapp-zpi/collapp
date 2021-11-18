@@ -1,5 +1,5 @@
 import { PublishedPlugin } from '@prisma/client'
-import { defaultPluginIcon } from 'config/defaultIcons'
+import { defaultPluginIcon } from 'shared/utils/defaultIcons'
 import { Tooltip } from 'shared/components/Tooltip'
 import { FiPlus, FiTrash2 } from 'react-icons/fi'
 
@@ -24,8 +24,9 @@ export const PluginListItem = ({
       onClick={onInfo}
     >
       <img
-        src={plugin.icon ?? defaultPluginIcon}
+        src={plugin.icon || defaultPluginIcon}
         className="w-10 h-10 rounded-25 mr-2"
+        alt="Plugin icon"
       />
       <div className="flex flex-col w-100 flex-grow">
         <div className="w-full h-4 mb-1 relative">

@@ -12,6 +12,7 @@ import { useQuery } from 'shared/hooks/useQuery'
 import Modal from 'shared/components/Modal'
 import Link from 'next/link'
 import { LoginForm } from 'includes/user/LoginForm'
+import { defaultUserIcon } from 'shared/utils/defaultIcons'
 
 const DropdownButton = ({
   children,
@@ -80,8 +81,9 @@ export const Layout = ({
               onClick={() => setDropdownOpen(!isDropdownOpen)}
             >
               <img
-                src={avatarQuery?.data?.image ?? ''}
+                src={avatarQuery?.data?.image || defaultUserIcon}
                 className="bg-gray-300 w-8 h-8 rounded-25 shadow-lg"
+                alt="User icon"
               />
             </div>
             <div

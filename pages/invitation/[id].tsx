@@ -8,7 +8,7 @@ import { LogoSpinner } from 'shared/components/LogoSpinner'
 import request from 'shared/utils/request'
 import { LoginForm } from 'includes/user/LoginForm'
 import { Layout } from 'layouts/Layout'
-import { defaultPluginIcon } from 'config/defaultIcons'
+import { defaultPluginIcon } from 'shared/utils/defaultIcons'
 import { truncate } from 'shared/utils/text'
 import useRequest from 'shared/hooks/useRequest'
 import { CgSpinner } from 'react-icons/cg'
@@ -107,6 +107,7 @@ const Invitation = ({
       <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-lg mx-auto mt-8">
         <img
           src={invitation.space.icon || defaultPluginIcon}
+          alt="Plugin icon"
           className="rounded-25 w-16 h-16 shadow-xl mx-auto"
         />
         <h3 className="text-3xl text-center font-bold mt-2">

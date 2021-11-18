@@ -20,7 +20,7 @@ import { updateSpacePlugins } from 'includes/spaces/endpoints'
 import { CgSpinner } from 'react-icons/cg'
 import { toast } from 'react-hot-toast'
 import PluginList from 'includes/spaces/plugin-editor/PluginList'
-import { defaultPluginIcon } from 'config/defaultIcons'
+import { defaultPluginIcon } from 'shared/utils/defaultIcons'
 import { withAuth } from 'shared/hooks/useAuth'
 import { Layout } from 'layouts/Layout'
 import { generateKey } from 'shared/utils/object'
@@ -337,7 +337,7 @@ const Item = ({ id }: { id: string }) => {
 
   return (
     <>
-      <TileImage src={data?.icon ?? defaultPluginIcon} className="mb-2" />
+      <TileImage src={data?.icon || defaultPluginIcon} className="mb-2" />
       {data?.name}
     </>
   )

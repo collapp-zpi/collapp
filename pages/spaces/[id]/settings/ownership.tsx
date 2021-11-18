@@ -22,6 +22,7 @@ import { withAuth } from 'shared/hooks/useAuth'
 import { Layout } from 'layouts/Layout'
 import { ErrorInfo } from 'shared/components/ErrorInfo'
 import { LogoSpinner } from 'shared/components/LogoSpinner'
+import { defaultSpaceIcon } from 'shared/utils/defaultIcons'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.query
@@ -177,7 +178,11 @@ const SpaceForm = ({ name, description, icon, disabled }: SpaceFormProps) => {
   return (
     <Form {...apiForm} className="flex flex-col">
       <div className="flex flex-col md:flex-row">
-        <InputPhoto disabled={disabled} name="icon" image={icon} />
+        <InputPhoto
+          disabled={disabled}
+          name="icon"
+          image={icon || defaultSpaceIcon}
+        />
         <div className="flex-grow flex flex-col">
           <InputText
             disabled={disabled}

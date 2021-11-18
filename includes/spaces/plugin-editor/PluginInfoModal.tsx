@@ -7,6 +7,7 @@ import {
   InputRangeFrame,
   PureInputRange,
 } from 'shared/components/input/InputRange'
+import { defaultPluginIcon } from 'shared/utils/defaultIcons'
 
 interface PluginInfoModalProps {
   id: string | null
@@ -51,7 +52,10 @@ export const PluginInfoModal = ({
     <Modal visible={open} close={close} className="max-w-screen-sm w-full">
       <div className="flex flex-col p-4">
         <div className="flex items-center">
-          <img src={icon} className="w-16 h-16 rounded-25 mr-4" />
+          <img
+            src={icon || defaultPluginIcon}
+            className="w-16 h-16 rounded-25 mr-4"
+          />
           <div className="flex-grow flex flex-col">
             <div className="font-bold text-2xl">{name}</div>
             <div className="text-gray-400">{author?.name}</div>

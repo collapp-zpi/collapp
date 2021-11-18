@@ -16,7 +16,7 @@ import { PureInputRange } from 'shared/components/input/InputRange'
 import classNames from 'classnames'
 import { LogoSpinner } from 'shared/components/LogoSpinner'
 import { CgClose } from 'react-icons/cg'
-import { defaultPluginIcon } from 'config/defaultIcons'
+import { defaultPluginIcon } from 'shared/utils/defaultIcons'
 
 type InputPhotoChildrenProps = {
   invalid: boolean

@@ -18,6 +18,7 @@ import { Layout } from 'layouts/Layout'
 import { withAuth } from 'shared/hooks/useAuth'
 import React from 'react'
 import { AccountDeleteForm } from 'includes/user/AccountDeleteForm'
+import { defaultUserIcon } from 'shared/utils/defaultIcons'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const res = await fetch(`${process.env.BASE_URL}/api/user`, {
@@ -118,7 +119,7 @@ const UserForm = ({ name, image }: UserFormProps) => {
   return (
     <Form {...apiForm} className="flex flex-col">
       <div className="flex flex-col md:flex-row">
-        <InputPhoto name="image" image={image} />
+        <InputPhoto name="image" image={image || defaultUserIcon} />
         <div className="flex-grow flex flex-col">
           <InputText
             name="name"

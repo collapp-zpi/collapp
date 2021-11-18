@@ -10,7 +10,7 @@ import { Layout } from 'layouts/Layout'
 import { withAuth } from 'shared/hooks/useAuth'
 import { ErrorInfo } from 'shared/components/ErrorInfo'
 import { Tooltip } from 'shared/components/Tooltip'
-import { defaultPluginIcon } from 'config/defaultIcons'
+import { defaultSpaceIcon, defaultUserIcon } from 'shared/utils/defaultIcons'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const params = objectPick(context.query, ['limit', 'page'])
@@ -75,7 +75,7 @@ const Spaces = () => {
               <div className="border-gray-300 rounded-3xl h-40 cursor-pointer bg-gray-50 shadow-xl p-6 flex flex-col transform hover:-translate-y-2 hover:shadow-2xl transition-all">
                 <div className="flex justify-between items-center">
                   <img
-                    src={icon || defaultPluginIcon}
+                    src={icon || defaultSpaceIcon}
                     alt="Space icon"
                     className="w-10 h-10 rounded-lg bg-gray-200 shadow-lg"
                   />
@@ -87,7 +87,7 @@ const Spaces = () => {
                         innerClassName="flex transform hover:-translate-y-1 hover:shadow-sm shadow-none transition-all"
                       >
                         <img
-                          src={user?.image || defaultPluginIcon}
+                          src={user?.image || defaultUserIcon}
                           alt="User image"
                           className="w-9 h-9 rounded-full bg-gray-200 border-2 border-gray-50"
                         />
