@@ -17,15 +17,19 @@ class Plugins {
     @Query('name') name?: string,
   ) {
     const entityCount = await prisma.publishedPlugin.count({
-      ...(name && { where: { name: { contains: name, mode: 'insensitive' } } }),
+      where: {
+        isDeleted: false,
+        ...(name && { name: { contains: name, mode: 'insensitive' } }),
+      },
     })
 
     return {
       entities: await prisma.publishedPlugin.findMany({
         take: limit,
-        ...(name && {
-          where: { name: { contains: name, mode: 'insensitive' } },
-        }),
+        where: {
+          isDeleted: false,
+          ...(name && { name: { contains: name, mode: 'insensitive' } }),
+        },
       }),
       pagination: { entityCount, limit },
     }
