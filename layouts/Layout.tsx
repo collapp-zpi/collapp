@@ -33,9 +33,11 @@ const DropdownButton = ({
 export const Layout = ({
   children,
   hasContainer = true,
+  className = '',
 }: {
   children: ReactNode
   hasContainer?: boolean
+  className?: string
 }) => {
   const { status, data } = useSession()
   const router = useRouter()
@@ -115,7 +117,7 @@ export const Layout = ({
           </div>
         )}
       </div>
-      <div className="flex-grow pb-8 px-8">
+      <div className={classNames('flex-grow pb-8 px-8', className)}>
         {hasContainer ? (
           <div className="container mx-auto max-w-screen-xl">{children}</div>
         ) : (
