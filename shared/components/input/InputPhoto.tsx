@@ -2,12 +2,12 @@ import { DropzoneRootProps, useDropzone } from 'react-dropzone'
 import { toast } from 'react-hot-toast'
 import { useController } from 'react-hook-form'
 import {
+  MouseEvent as ReactMouseEvent,
+  PointerEvent as ReactPointerEvent,
   ReactNode,
   useCallback,
   useEffect,
   useState,
-  PointerEvent as ReactPointerEvent,
-  MouseEvent as ReactMouseEvent,
 } from 'react'
 import Modal from 'shared/components/Modal'
 import Button from 'shared/components/button/Button'
@@ -16,7 +16,6 @@ import { PureInputRange } from 'shared/components/input/InputRange'
 import classNames from 'classnames'
 import { LogoSpinner } from 'shared/components/LogoSpinner'
 import { CgClose } from 'react-icons/cg'
-import { defaultPluginIcon } from 'shared/utils/defaultIcons'
 
 type InputPhotoChildrenProps = {
   invalid: boolean
@@ -67,7 +66,7 @@ export const InputPhoto = ({
             </div>
           )}
           <img
-            src={value || image || defaultPluginIcon}
+            src={value || image}
             className="shadow-lg rounded-25"
             alt="Plugin icon"
           />
