@@ -11,7 +11,8 @@ import Button from 'shared/components/button/Button'
 import { PluginInfoModal } from 'includes/spaces/plugin-editor/PluginInfoModal'
 import { PluginDeleteModal } from 'includes/spaces/plugin-editor/PluginDeleteModal'
 import { PluginListItem } from 'includes/spaces/plugin-editor/PluginListItem'
-import { LayoutType, MappedType } from 'pages/spaces/[id]/settings/plugins'
+import { LayoutType } from 'pages/spaces/[id]/settings/plugins'
+import { MappedType } from 'includes/spaces/plugin-editor/PluginGrid'
 
 const filtersSchema = object().shape({
   name: string().default(''),
@@ -68,6 +69,14 @@ const PluginList = ({ mapped, setMapped, setLayout }: PluginListProps) => {
         maxW: plugin.maxWidth,
         minH: plugin.minHeight,
         maxH: plugin.maxHeight,
+        resizeHandles: [
+          ...(plugin.minHeight !== plugin.maxHeight ? ['s'] : []),
+          ...(plugin.minWidth !== plugin.maxWidth ? ['e'] : []),
+          ...(plugin.minHeight !== plugin.maxHeight &&
+          plugin.minWidth !== plugin.maxWidth
+            ? ['se']
+            : []),
+        ],
       },
     ])
   }

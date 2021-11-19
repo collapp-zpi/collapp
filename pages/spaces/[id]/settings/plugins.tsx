@@ -3,16 +3,7 @@ import { useRouter } from 'next/router'
 import Button from 'shared/components/button/Button'
 import { GoChevronLeft } from 'react-icons/go'
 import { SpaceSettingsButtons } from 'includes/spaces/components/SpaceSettingsButtons'
-import GridLayout, { WidthProvider } from 'react-grid-layout'
-import styled from 'styled-components'
-import {
-  createContext,
-  ReactNode,
-  Ref,
-  useContext,
-  useEffect,
-  useState,
-} from 'react'
+import { useState } from 'react'
 import { GetServerSidePropsContext } from 'next'
 import { PublishedPlugin, SpacePlugin } from '@prisma/client'
 import useRequest from 'shared/hooks/useRequest'
@@ -20,7 +11,6 @@ import { updateSpacePlugins } from 'includes/spaces/endpoints'
 import { CgSpinner } from 'react-icons/cg'
 import { toast } from 'react-hot-toast'
 import PluginList from 'includes/spaces/plugin-editor/PluginList'
-import { defaultPluginIcon } from 'shared/utils/defaultIcons'
 import { withAuth } from 'shared/hooks/useAuth'
 import { Layout } from 'layouts/Layout'
 import { generateKey } from 'shared/utils/object'
@@ -29,32 +19,15 @@ import { ErrorInfo } from 'shared/components/ErrorInfo'
 import { LogoSpinner } from 'shared/components/LogoSpinner'
 import { withFallback } from 'shared/hooks/useApiForm'
 import { useSWRConfig } from 'swr'
-import classNames from 'classnames'
+import {
+  MappedType,
+  PluginGrid,
+  PluginRepoContext,
+} from 'includes/spaces/plugin-editor/PluginGrid'
 
 interface Plugin extends SpacePlugin {
   plugin: PublishedPlugin
 }
-
-const Tile = styled.div`
-  background-color: #e0e0e0;
-  border-radius: 1.75em;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  font-size: 1em;
-  font-weight: 600;
-
-  &:hover .react-resizable-handle {
-    opacity: 0.75;
-  }
-`
-
-const TileImage = styled.img`
-  width: 3em;
-  height: 3em;
-  border-radius: 0.6em;
-`
 
 export const getServerSideProps = async (
   context: GetServerSidePropsContext,
@@ -83,9 +56,7 @@ export const getServerSideProps = async (
 
   if (!res.ok) {
     return {
-      props: {
-        error: await res.json(),
-      },
+      props: { error: await res.json() },
     }
   }
 
@@ -106,49 +77,6 @@ export const getServerSideProps = async (
     },
   }
 }
-
-export type MappedType = {
-  [key: string]: {
-    name: string
-    icon: string | null
-    isDeleted: boolean
-  } | null
-}
-
-const PluginRepoContext = createContext<MappedType>({})
-
-const usePluginData = (id: string) => useContext(PluginRepoContext)[id]
-
-interface InnerResponsiveGridProps {
-  width: number
-  children: (size: number) => ReactNode
-  innerRef: Ref<HTMLDivElement>
-}
-
-const InnerResponsiveGrid = ({
-  width,
-  innerRef,
-  children,
-}: InnerResponsiveGridProps) => {
-  const [size, setSize] = useState(12)
-
-  useEffect(() => {
-    setSize(Math.ceil(width / 5.4 / 10) - 1)
-  }, [width, setSize])
-
-  return (
-    <div ref={innerRef}>
-      <div
-        className="mx-auto"
-        style={{ fontSize: 16 + (size - 16) * 0.5, width: size * 10 * 5.4 }}
-      >
-        {children(size)}
-      </div>
-    </div>
-  )
-}
-
-const Grid = WidthProvider(InnerResponsiveGrid)
 
 export type LayoutType = {
   i: string
@@ -228,6 +156,14 @@ const InnerPlugins = ({ plugins }: { plugins: Plugin[] }) => {
       maxW: plugin.maxWidth,
       minH: plugin.minHeight,
       maxH: plugin.maxHeight,
+      resizeHandles: [
+        ...(plugin.minHeight !== plugin.maxHeight ? ['s'] : []),
+        ...(plugin.minWidth !== plugin.maxWidth ? ['e'] : []),
+        ...(plugin.minHeight !== plugin.maxHeight &&
+        plugin.minWidth !== plugin.maxWidth
+          ? ['se']
+          : []),
+      ],
     }))
   })
 
@@ -309,44 +245,11 @@ const InnerPlugins = ({ plugins }: { plugins: Plugin[] }) => {
               </div>
             )}
             <PluginRepoContext.Provider value={mapped}>
-              <Grid>
-                {(size) => (
-                  <GridLayout
-                    layout={layout}
-                    cols={5}
-                    margin={[size, size]}
-                    rowHeight={size * 10}
-                    width={size * 5.4 * 10}
-                    onLayoutChange={(data) => setLayout(data)}
-                    resizeHandles={['s', 'se', 'e']}
-                  >
-                    {layout.map(generateItem)}
-                  </GridLayout>
-                )}
-              </Grid>
+              <PluginGrid {...{ layout, setLayout }} />
             </PluginRepoContext.Provider>
           </div>
         </div>
       </div>
-    </>
-  )
-}
-
-const generateItem = (data: LayoutType) => (
-  <Tile key={data.i}>
-    <Item id={data.i} />
-  </Tile>
-)
-
-const Item = ({ id }: { id: string }) => {
-  const data = usePluginData(id)
-
-  return (
-    <>
-      <TileImage src={data?.icon || defaultPluginIcon} className="mb-2" />
-      <span className={classNames(data?.isDeleted && 'text-red-500')}>
-        {data?.name}
-      </span>
     </>
   )
 }

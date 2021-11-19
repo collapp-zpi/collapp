@@ -42,6 +42,7 @@ class Plugins {
           select: {
             name: true,
             icon: true,
+            isDeleted: true,
             minWidth: true,
             maxWidth: true,
             minHeight: true,
