@@ -102,8 +102,7 @@ const PluginBlock = ({
 }: PluginBlockProps) => {
   const spacePluginId = `${spaceId}_${pluginId}`
   const componentUrl = `https://cloudfront.collapp.live/plugins/${pluginId}/entry.js`
-  // const websocketsUrl = `wss://collapp-build-server.herokuapp.com`
-  const websocketsUrl = 'ws://localhost:3005'
+  const websocketsUrl = `wss://collapp-build-server.herokuapp.com`
   const [loading, err, Component] = useRemoteComponent(componentUrl)
 
   return (
