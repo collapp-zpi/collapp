@@ -16,6 +16,8 @@ import { CgSpinner } from 'react-icons/cg'
 import { Tooltip } from 'shared/components/Tooltip'
 import React from 'react'
 import InviteButton from 'includes/invitations/InviteButton'
+import { useRemoteComponent } from 'tools/useRemoteComponent'
+import { BiErrorAlt } from 'react-icons/bi'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.query
@@ -82,29 +84,70 @@ interface PluginBlockSize {
 }
 
 interface PluginBlockProps extends PluginBlockSize {
-  id: string
+  pluginId: string
+  spaceId: string
 }
 
 interface PluginBlockItem extends PluginBlockSize {
   pluginId: string
 }
 
-const PluginBlock = ({ id, top, left, width, height }: PluginBlockProps) => (
-  <div
-    className="rounded-3xl shadow-2xl overflow-hidden bg-gray-300 flex"
-    style={{
-      borderRadius: 35,
-      gridColumnStart: left + 1,
-      gridColumnEnd: `span ${width}`,
-      gridRowStart: top + 1,
-      gridRowEnd: `span ${height}`,
-    }}
-  >
-    <Tooltip value={id} className="m-auto" innerClassName="p-2">
-      <CgSpinner className="animate-spin text-gray-500 text-xl" />
-    </Tooltip>
-  </div>
-)
+const PluginBlock = ({
+  spaceId,
+  pluginId,
+  top,
+  left,
+  width,
+  height,
+}: PluginBlockProps) => {
+  const spacePluginId = `${spaceId}_${pluginId}`
+  const componentUrl = `https://cloudfront.collapp.live/plugins/${pluginId}/entry.js`
+  // const websocketsUrl = `wss://collapp-build-server.herokuapp.com`
+  const websocketsUrl = 'ws://localhost:3005'
+  const [loading, err, Component] = useRemoteComponent(componentUrl)
+
+  return (
+    <div
+      className="rounded-3xl shadow-2xl overflow-hidden bg-gray-300 flex"
+      style={{
+        borderRadius: 35,
+        gridColumnStart: left + 1,
+        gridColumnEnd: `span ${width}`,
+        gridRowStart: top + 1,
+        gridRowEnd: `span ${height}`,
+      }}
+    >
+      {loading && (
+        <Tooltip value={spacePluginId} className="m-auto" innerClassName="p-2">
+          <CgSpinner className="animate-spin text-gray-500 text-xl" />
+        </Tooltip>
+      )}
+      {err && (
+        <Tooltip
+          value={`Somethig is wrong with plugin ${spacePluginId}`}
+          className="m-auto"
+          innerClassName="p-2"
+        >
+          <div className="w-full h-full m-auto flex justify-center justify-items-center">
+            <BiErrorAlt className="w-32 h-32 m-auto text-red-500" />
+          </div>
+        </Tooltip>
+      )}
+      {!loading && !err && (
+        <Component
+          websockets={websocketsUrl}
+          ids={{ plugin: pluginId, space: spaceId }}
+          size={{
+            top,
+            left,
+            width,
+            height,
+          }}
+        />
+      )}
+    </div>
+  )
+}
 
 const Space = () => {
   const router = useRouter()
@@ -163,7 +206,12 @@ const Space = () => {
           <div className="flex mt-12">
             <PluginGrid>
               {plugins.map(({ pluginId, ...size }: PluginBlockItem) => (
-                <PluginBlock key={pluginId} id={pluginId} {...size} />
+                <PluginBlock
+                  key={pluginId}
+                  pluginId={pluginId}
+                  spaceId={pathId}
+                  {...size}
+                />
               ))}
             </PluginGrid>
           </div>
