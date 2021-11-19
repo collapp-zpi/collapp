@@ -53,6 +53,7 @@ const PluginList = ({ mapped, setMapped, setLayout }: PluginListProps) => {
       [plugin.id]: {
         name: plugin.name,
         icon: plugin.icon,
+        isDeleted: plugin.isDeleted,
       },
     }))
     setLayout((layout) => [

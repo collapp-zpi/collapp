@@ -18,7 +18,6 @@ class Plugins {
   ) {
     const entityCount = await prisma.publishedPlugin.count({
       where: {
-        isDeleted: false,
         ...(name && { name: { contains: name, mode: 'insensitive' } }),
       },
     })
@@ -27,7 +26,6 @@ class Plugins {
       entities: await prisma.publishedPlugin.findMany({
         take: limit,
         where: {
-          isDeleted: false,
           ...(name && { name: { contains: name, mode: 'insensitive' } }),
         },
       }),

@@ -46,6 +46,7 @@ export const PluginInfoModal = ({
     maxWidth,
     minHeight,
     maxHeight,
+    isDeleted,
   } = data
 
   return (
@@ -55,6 +56,7 @@ export const PluginInfoModal = ({
           <img
             src={icon || defaultPluginIcon}
             className="w-16 h-16 rounded-25 mr-4"
+            alt="Plugin icon"
           />
           <div className="flex-grow flex flex-col">
             <div className="font-bold text-2xl">{name}</div>
@@ -63,6 +65,10 @@ export const PluginInfoModal = ({
           {isAdded ? (
             <Button color="red-link" onClick={() => handleDelete(data.id)}>
               Delete
+            </Button>
+          ) : isDeleted ? (
+            <Button color="light" disabled>
+              Plugin deleted
             </Button>
           ) : (
             <Button color="blue-link" onClick={handleAdd(data)}>

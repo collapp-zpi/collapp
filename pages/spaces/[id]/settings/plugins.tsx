@@ -29,6 +29,7 @@ import { ErrorInfo } from 'shared/components/ErrorInfo'
 import { LogoSpinner } from 'shared/components/LogoSpinner'
 import { withFallback } from 'shared/hooks/useApiForm'
 import { useSWRConfig } from 'swr'
+import classNames from 'classnames'
 
 interface Plugin extends SpacePlugin {
   plugin: PublishedPlugin
@@ -107,7 +108,11 @@ export const getServerSideProps = async (
 }
 
 export type MappedType = {
-  [key: string]: { name: string; icon: string | null } | null
+  [key: string]: {
+    name: string
+    icon: string | null
+    isDeleted: boolean
+  } | null
 }
 
 const PluginRepoContext = createContext<MappedType>({})
@@ -205,6 +210,7 @@ const InnerPlugins = ({ plugins }: { plugins: Plugin[] }) => {
       mapped[pluginId] = {
         name: plugin.name,
         icon: plugin.icon,
+        isDeleted: plugin.isDeleted,
       }
     }
 
@@ -338,7 +344,9 @@ const Item = ({ id }: { id: string }) => {
   return (
     <>
       <TileImage src={data?.icon || defaultPluginIcon} className="mb-2" />
-      {data?.name}
+      <span className={classNames(data?.isDeleted && 'text-red-500')}>
+        {data?.name}
+      </span>
     </>
   )
 }

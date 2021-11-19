@@ -43,16 +43,7 @@ export const PluginListItem = ({
         )}
       </div>
     </div>
-    {!isAdded ? (
-      <Tooltip value="Add">
-        <div
-          className="p-2 ml-2 bg-blue-50 text-blue-400 cursor-pointer hover:bg-blue-500 hover:text-white transition-colors rounded-xl"
-          onClick={onAdd}
-        >
-          <FiPlus />
-        </div>
-      </Tooltip>
-    ) : (
+    {isAdded ? (
       <Tooltip value="Delete">
         <div
           className="p-2 ml-2 bg-red-50 text-red-400 cursor-pointer hover:bg-red-500 hover:text-white transition-colors rounded-xl"
@@ -61,6 +52,17 @@ export const PluginListItem = ({
           <FiTrash2 />
         </div>
       </Tooltip>
+    ) : (
+      !plugin.isDeleted && (
+        <Tooltip value="Add">
+          <div
+            className="p-2 ml-2 bg-blue-50 text-blue-400 cursor-pointer hover:bg-blue-500 hover:text-white transition-colors rounded-xl"
+            onClick={onAdd}
+          >
+            <FiPlus />
+          </div>
+        </Tooltip>
+      )
     )}
   </div>
 )
