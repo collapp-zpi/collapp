@@ -13,19 +13,13 @@ import { truncate } from 'shared/utils/text'
 import useRequest from 'shared/hooks/useRequest'
 import { CgSpinner } from 'react-icons/cg'
 import { FiCheck } from 'react-icons/fi'
+import { fetchApi } from 'shared/utils/fetchApi'
 
 export const getServerSideProps = async (
   context: GetServerSidePropsContext,
 ) => {
   const { id } = context.query
-  const res = await fetch(`${process.env.BASE_URL}/api/invitation/${id}`, {
-    method: 'GET',
-    headers: {
-      ...(context?.req?.headers?.cookie && {
-        cookie: context.req.headers.cookie,
-      }),
-    },
-  })
+  const res = await fetchApi(`/api/invitation/${id}`)(context)
 
   if (!res.ok) {
     return {

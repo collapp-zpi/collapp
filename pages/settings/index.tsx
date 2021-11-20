@@ -19,29 +19,15 @@ import { withAuth } from 'shared/hooks/useAuth'
 import React from 'react'
 import { AccountDeleteForm } from 'includes/user/AccountDeleteForm'
 import { defaultUserIcon } from 'shared/utils/defaultIcons'
+import { fetchApi } from 'shared/utils/fetchApi'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const res = await fetch(`${process.env.BASE_URL}/api/user`, {
-    method: 'GET',
-    headers: {
-      ...(context?.req?.headers?.cookie && {
-        cookie: context.req.headers.cookie,
-      }),
-    },
-  })
-
-  if (!res.ok) {
-    return {
-      props: {
-        error: await res.json(),
-      },
-    }
-  }
+  const res = await fetchApi(`/api/user`)(context)
 
   return {
     props: {
       fallback: {
-        [generateKey('user')]: await res.json(),
+        [generateKey('user')]: res.ok ? await res.json() : undefined,
       },
     },
   }

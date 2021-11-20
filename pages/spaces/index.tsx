@@ -11,32 +11,18 @@ import { withAuth } from 'shared/hooks/useAuth'
 import { ErrorInfo } from 'shared/components/ErrorInfo'
 import { Tooltip } from 'shared/components/Tooltip'
 import { defaultSpaceIcon, defaultUserIcon } from 'shared/utils/defaultIcons'
+import { fetchApi } from 'shared/utils/fetchApi'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const params = objectPick(context.query, ['limit', 'page'])
   const search = new URLSearchParams(params)
 
-  const res = await fetch(`${process.env.BASE_URL}/api/spaces?${search}`, {
-    method: 'GET',
-    headers: {
-      ...(context?.req?.headers?.cookie && {
-        cookie: context.req.headers.cookie,
-      }),
-    },
-  })
-
-  if (!res.ok) {
-    return {
-      props: {
-        error: await res.json(),
-      },
-    }
-  }
+  const res = await fetchApi(`/api/spaces?${search}`)(context)
 
   return {
     props: {
       fallback: {
-        [generateKey('spaces', params)]: await res.json(),
+        [generateKey('spaces', params)]: res.ok ? await res.json() : undefined,
       },
     },
   }

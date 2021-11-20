@@ -28,51 +28,22 @@ import { CgSpinner } from 'react-icons/cg'
 import React, { useState } from 'react'
 import useRequest from 'shared/hooks/useRequest'
 import request from 'shared/utils/request'
+import { fetchApi } from 'shared/utils/fetchApi'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.query
-  const res = await fetch(`${process.env.BASE_URL}/api/spaces/${id}`, {
-    method: 'GET',
-    headers: {
-      ...(context?.req?.headers?.cookie && {
-        cookie: context.req.headers.cookie,
-      }),
-    },
-  })
-
-  const permissions = await fetch(
-    `${process.env.BASE_URL}/api/spaces/${id}/permissions`,
-    {
-      method: 'GET',
-      headers: {
-        ...(context?.req?.headers?.cookie && {
-          cookie: context.req.headers.cookie,
-        }),
-      },
-    },
-  )
-
-  if (!res.ok) {
-    return {
-      props: {
-        error: await res.json(),
-      },
-    }
-  }
-
-  if (!permissions.ok) {
-    return {
-      props: {
-        error: await permissions.json(),
-      },
-    }
-  }
+  const res = await fetchApi(`/api/spaces/${id}`)(context)
+  const permissions = await fetchApi(`/api/spaces/${id}/permissions`)(context)
 
   return {
     props: {
       fallback: {
-        [generateKey('space', String(id))]: await res.json(),
-        [generateKey('permissions', String(id))]: await permissions.json(),
+        [generateKey('space', String(id))]: res.ok
+          ? await res.json()
+          : undefined,
+        [generateKey('permissions', String(id))]: permissions.ok
+          ? await permissions.json()
+          : undefined,
       },
     },
   }

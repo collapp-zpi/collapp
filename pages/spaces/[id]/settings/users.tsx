@@ -25,74 +25,28 @@ import { CgSpinner } from 'react-icons/cg'
 import { RiVipCrownLine } from 'react-icons/ri'
 import Modal from 'shared/components/Modal'
 import InvitationList from 'includes/invitations/InvitationList'
+import { fetchApi } from 'shared/utils/fetchApi'
 
 export const getServerSideProps = async (
   context: GetServerSidePropsContext,
 ) => {
   const { id } = context.query
-  const res = await fetch(`${process.env.BASE_URL}/api/spaces/${id}/users`, {
-    method: 'GET',
-    headers: {
-      ...(context?.req?.headers?.cookie && {
-        cookie: context.req.headers.cookie,
-      }),
-    },
-  })
-
-  const permissions = await fetch(
-    `${process.env.BASE_URL}/api/spaces/${id}/permissions`,
-    {
-      method: 'GET',
-      headers: {
-        ...(context?.req?.headers?.cookie && {
-          cookie: context.req.headers.cookie,
-        }),
-      },
-    },
-  )
-
-  const invitations = await fetch(
-    `${process.env.BASE_URL}/api/invitation/space/${id}`,
-    {
-      method: 'GET',
-      headers: {
-        ...(context?.req?.headers?.cookie && {
-          cookie: context.req.headers.cookie,
-        }),
-      },
-    },
-  )
-
-  if (!res.ok) {
-    return {
-      props: {
-        error: await res.json(),
-      },
-    }
-  }
-
-  if (!permissions.ok) {
-    return {
-      props: {
-        error: await permissions.json(),
-      },
-    }
-  }
-
-  if (!invitations.ok) {
-    return {
-      props: {
-        error: await permissions.json(),
-      },
-    }
-  }
+  const res = await fetchApi(`/api/spaces/${id}/users`)(context)
+  const permissions = await fetchApi(`/api/spaces/${id}/permissions`)(context)
+  const invitations = await fetchApi(`/api/invitation/space/${id}`)(context)
 
   return {
     props: {
       fallback: {
-        [generateKey('space', String(id), 'users')]: await res.json(),
-        [generateKey('permissions', String(id))]: await permissions.json(),
-        [generateKey('invitations', String(id))]: await invitations.json(),
+        [generateKey('space', String(id), 'users')]: res.ok
+          ? await res.json()
+          : undefined,
+        [generateKey('permissions', String(id))]: permissions.ok
+          ? await permissions.json()
+          : undefined,
+        [generateKey('invitations', String(id))]: invitations.ok
+          ? await invitations.json()
+          : undefined,
       },
     },
   }
