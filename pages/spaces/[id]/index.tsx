@@ -14,21 +14,26 @@ import { Layout } from 'layouts/Layout'
 import { withAuth } from 'shared/hooks/useAuth'
 import { CgSpinner } from 'react-icons/cg'
 import { Tooltip } from 'shared/components/Tooltip'
-import React from 'react'
+import React, { useMemo } from 'react'
 import InviteButton from 'includes/invitations/InviteButton'
 import { useRemoteComponent } from 'tools/useRemoteComponent'
 import { BiErrorAlt } from 'react-icons/bi'
 import { fetchApi } from 'shared/utils/fetchApi'
+import { useSession } from 'next-auth/react'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.query
 
   const res = await fetchApi(`/api/spaces/${id}`)(context)
   const permissions = await fetchApi(`/api/spaces/${id}/permissions`)(context)
+  const users = await fetchApi(`/api/spaces/${id}/users`)(context)
 
   return {
     props: {
       fallback: {
+        [generateKey('space', String(id), 'users')]: users.ok
+          ? await users.json()
+          : undefined,
         [generateKey('space', String(id))]: res.ok
           ? await res.json()
           : undefined,
@@ -58,15 +63,24 @@ interface PluginBlockSize {
 interface PluginBlockProps extends PluginBlockSize {
   pluginId: string
   spaceId: string
+  userId: string
+  users: { [key: string]: SimpleUserItem }
 }
 
 interface PluginBlockItem extends PluginBlockSize {
   pluginId: string
 }
 
+interface SimpleUserItem {
+  name: string
+  image: string
+}
+
 const PluginBlock = ({
   spaceId,
   pluginId,
+  userId,
+  users,
   top,
   left,
   width,
@@ -107,7 +121,8 @@ const PluginBlock = ({
       {!loading && !err && (
         <Component
           websockets={websocketsUrl}
-          ids={{ plugin: pluginId, space: spaceId }}
+          ids={{ plugin: pluginId, space: spaceId, user: userId }}
+          users={users}
           size={{
             top,
             left,
@@ -128,6 +143,21 @@ const Space = () => {
     ['permissions', pathId],
     `/api/spaces/${pathId}/permissions`,
   )
+  const session = useSession()
+  const usersQuery = useQuery(
+    ['space', pathId, 'users'],
+    `/api/spaces/${pathId}/users`,
+  )
+  const users = useMemo(() => {
+    const users: { [key: string]: SimpleUserItem } = {}
+    for (const { user } of usersQuery.data || []) {
+      users[user.id] = {
+        name: user.name,
+        image: user.image,
+      }
+    }
+    return users
+  }, [usersQuery.data])
 
   const { id, name, description, plugins } = data || {}
 
@@ -181,6 +211,8 @@ const Space = () => {
                   key={pluginId}
                   pluginId={pluginId}
                   spaceId={pathId}
+                  userId={(session?.data?.userId as string) ?? ''}
+                  users={users}
                   {...size}
                 />
               ))}
