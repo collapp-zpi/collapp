@@ -17,4 +17,4 @@ export function getParams(key: string, body?: Buffer): PutObjectRequest {
   }
 }
 
-export const amazonUrl = 'https://cloudfront.collapp.live/'
+export const amazonUrl = 'http://aws.collapp.live/'
