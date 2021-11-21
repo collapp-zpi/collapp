@@ -119,7 +119,7 @@ const PluginBlock = ({
         </Tooltip>
       )}
       {!loading && !err && (
-        <div className={pluginId}>
+        <div className={pluginId} style={{ width: '100%', height: '100%' }}>
           <Component
             websockets={websocketsUrl}
             ids={{ plugin: pluginId, space: spaceId, user: userId }}
