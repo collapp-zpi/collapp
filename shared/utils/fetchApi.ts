@@ -1,4 +1,5 @@
 import { GetServerSidePropsContext } from 'next'
+import { generateKey, QueryKey } from 'shared/utils/object'
 
 export const fetchApi =
   (path = '', options?: RequestInit) =>
@@ -13,3 +14,13 @@ export const fetchApi =
         ...options?.headers,
       },
     })
+
+export const fetchApiFallback =
+  (context: GetServerSidePropsContext) =>
+  async (key: QueryKey[], path = '', options?: RequestInit) => {
+    const res = await fetchApi(path, options)(context)
+    if (!res.ok) return
+
+    const queryKey = generateKey(...key)
+    return { [queryKey]: await res.json() }
+  }

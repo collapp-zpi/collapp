@@ -5,9 +5,9 @@ export const objectPick = (object: { [key: string]: any }, keys: string[]) =>
     {},
   )
 
-type Item = string | string[] | { [key: string]: string }
+export type QueryKey = string | string[] | { [key: string]: string }
 
-export const generateKey = (...items: Item[]) =>
+export const generateKey = (...items: QueryKey[]) =>
   items
     .reduce<string[]>((keys, item) => {
       if (typeof item === 'string') return [...keys, item]
