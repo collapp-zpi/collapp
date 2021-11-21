@@ -56,7 +56,7 @@ export const sendInviteEmail = async (
     context: {
       from,
       space: spaceName,
-      url: `${process.env.BASE_URL}/invitation/${inviteId}`,
+      url: `${process.env.BASE_URL}/invitations/${inviteId}`,
     },
   })
   mail.disconnect()
