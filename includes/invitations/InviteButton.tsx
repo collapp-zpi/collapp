@@ -101,7 +101,7 @@ const InviteButton = ({ spaceId }: { spaceId: string }) => {
           <div>
             <UncontrolledForm
               query={(data) =>
-                request.post(`/api/spaces/${spaceId}/invite`, data)
+                request.post(`/api/invitations/space/${spaceId}`, data)
               }
               {...{ schema, onSuccess, onError }}
               className="flex flex-col"

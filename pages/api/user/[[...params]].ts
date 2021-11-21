@@ -5,11 +5,16 @@ import {
   createHandler,
   Delete,
   Get,
+  Param,
   Patch,
   ValidationPipe,
 } from '@storyofams/next-api-decorators'
 import { NextAuthGuard, RequestUser, User } from 'shared/utils/apiDecorators'
 import { IsOptional, NotEquals } from 'class-validator'
+import {
+  spaceFindExists,
+  userIsMember,
+} from 'includes/spaces/spaceRequestValidation'
 
 export class UpdateUserDTO {
   @IsOptional()
@@ -66,6 +71,13 @@ class UserSettings {
         id: user.id,
       },
     })
+  }
+
+  @Get('/space/:id/permissions')
+  async getPermissions(@Param('id') id: string, @User user: RequestUser) {
+    await spaceFindExists(id)
+
+    return await userIsMember(user.id, id)
   }
 }
 

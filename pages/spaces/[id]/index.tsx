@@ -28,7 +28,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const users = await fetch(['space', id, 'users'], `/api/spaces/${id}/users`)
   const permissions = await fetch(
     ['permissions', id],
-    `/api/spaces/${id}/permissions`,
+    `/api/user/space/${id}/permissions`,
   )
 
   return {
@@ -145,7 +145,7 @@ const Space = () => {
   const { data, error } = useQuery(['space', pathId], `/api/spaces/${pathId}`)
   const permissions = useQuery(
     ['permissions', pathId],
-    `/api/spaces/${pathId}/permissions`,
+    `/api/user/space/${pathId}/permissions`,
   )
   const session = useSession()
   const usersQuery = useQuery(

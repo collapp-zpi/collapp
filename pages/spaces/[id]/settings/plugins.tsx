@@ -42,7 +42,7 @@ export const getServerSideProps = async (
   )
   const permissions = await fetch(
     ['permissions', id],
-    `/api/spaces/${id}/permissions`,
+    `/api/user/space/${id}/permissions`,
   )
 
   return {
@@ -163,7 +163,7 @@ const InnerPlugins = ({ plugins }: { plugins: Plugin[] }) => {
 
   const permissions = useQuery(
     ['permissions', id],
-    `/api/spaces/${id}/permissions`,
+    `/api/user/space/${id}/permissions`,
   )
 
   const handleSubmit = () => {

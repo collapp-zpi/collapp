@@ -36,7 +36,7 @@ export const getServerSideProps = async (
   const users = await fetch(['space', id, 'users'], `/api/spaces/${id}/users`)
   const permissions = await fetch(
     ['permissions', id],
-    `/api/spaces/${id}/permissions`,
+    `/api/user/space/${id}/permissions`,
   )
   const invitations = await fetch(
     ['invitations', id],
@@ -66,7 +66,7 @@ const SpaceUserSettings = () => {
 
   const permissions = useQuery(
     ['permissions', id],
-    `/api/spaces/${id}/permissions`,
+    `/api/user/space/${id}/permissions`,
   )
 
   const canEdit =
@@ -166,7 +166,7 @@ const PermissionsForm = ({ data, isOwner }) => {
   )
 
   const updateUsers = useRequest(
-    () => request.patch(`/api/spaces/${id}/permissions`, state),
+    () => request.patch(`/api/user/space/${id}/permissions`, state),
     {
       onSuccess: () => {
         toast.success('Permissions were successfully updated')

@@ -5,6 +5,7 @@ import {
   Post,
   Delete,
   Body,
+  ValidationPipe,
 } from '@storyofams/next-api-decorators'
 import { prisma } from 'shared/utils/prismaClient'
 import { NextAuthGuard, RequestUser, User } from 'shared/utils/apiDecorators'
@@ -14,11 +15,17 @@ import {
   sendInviteEmail,
 } from 'includes/invitations/invitationRequestValidation'
 import {
-  spaceExists,
+  spaceFindExists,
   userCanInvite,
   userIsMember,
   userIsNotMember,
 } from 'includes/spaces/spaceRequestValidation'
+import { IsNotEmpty } from 'class-validator'
+
+export class CreateInviteDTO {
+  @IsNotEmpty({ message: 'Timeframe is required' })
+  timeframe!: string
+}
 
 @NextAuthGuard()
 class Invitations {
@@ -88,13 +95,58 @@ class Invitations {
 
   @Get('/space/:id')
   async getSpaceInvitations(@Param('id') id: string, @User user: RequestUser) {
-    await spaceExists(id)
+    await spaceFindExists(id)
     const spaceUser = await userIsMember(user.id, id)
     await userCanInvite(spaceUser)
 
     return await prisma.invite.findMany({
       where: {
         spaceId: id,
+      },
+    })
+  }
+
+  @Post('/space/:id')
+  async generateInvite(
+    @Param('id') id: string,
+    @Body(ValidationPipe) body: CreateInviteDTO,
+    @User user: RequestUser,
+  ) {
+    await spaceFindExists(id)
+
+    const spaceUser = await userIsMember(user.id, id)
+    await userCanInvite(spaceUser)
+
+    let expire: number | null = 0
+    switch (body.timeframe) {
+      case '1':
+        expire = 1
+        break
+      case '3':
+        expire = 3
+        break
+      case '7':
+        expire = 7
+        break
+      default:
+        expire = null
+    }
+
+    const today = new Date()
+    let expireDay = null
+    if (!!expire) {
+      expireDay = new Date()
+      expireDay.setDate(today.getDate() + expire)
+    }
+
+    return await prisma.invite.create({
+      data: {
+        expiresAt: expireDay,
+        space: {
+          connect: {
+            id: id,
+          },
+        },
       },
     })
   }
