@@ -40,7 +40,7 @@ export const getServerSideProps = async (
   )
   const invitations = await fetch(
     ['invitations', id],
-    `/api/invitation/space/${id}`,
+    `/api/invitations/space/${id}`,
   )
 
   return {
@@ -61,7 +61,7 @@ const SpaceUserSettings = () => {
   const { data } = useQuery(['space', id, 'users'], `/api/spaces/${id}/users`)
   const invitations = useQuery(
     ['invitations', id],
-    `/api/invitation/space/${id}`,
+    `/api/invitations/space/${id}`,
   )
 
   const permissions = useQuery(

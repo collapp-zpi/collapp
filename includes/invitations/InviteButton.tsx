@@ -43,7 +43,7 @@ const InviteButton = ({ spaceId }: { spaceId: string }) => {
     mutate(generateKey('invitations', spaceId))
   }
 
-  const url = `${window.origin}/invitation/${link}`
+  const url = `${window.origin}/invitations/${link}`
 
   const handleCopy = () => {
     copy(url)

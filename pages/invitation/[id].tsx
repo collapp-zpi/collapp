@@ -19,7 +19,7 @@ export const getServerSideProps = async (
   context: GetServerSidePropsContext,
 ) => {
   const { id } = context.query
-  const res = await fetchApi(`/api/invitation/${id}`)(context)
+  const res = await fetchApi(`/api/invitations/${id}`)(context)
 
   if (!res.ok) {
     return {
@@ -45,7 +45,7 @@ const Invitation = ({
   const pathId = String(router.query.id)
 
   const invitationRequest = useRequest(
-    () => request.post(`/api/invitation/${pathId}`),
+    () => request.post(`/api/invitations/${pathId}`),
     {
       onSuccess: () => {
         toast.success('You have successfully joined the space')

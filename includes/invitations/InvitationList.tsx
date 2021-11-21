@@ -21,7 +21,7 @@ const InvitationList = ({
 }) => {
   const { mutate } = useSWRConfig()
   const deleteInvitation = useRequest(
-    (id: string) => request.delete(`/api/invitation/${id}`),
+    (id: string) => request.delete(`/api/invitations/${id}`),
     {
       onSuccess: () => {
         toast.success('Invitation was successfully deleted')
@@ -69,7 +69,7 @@ const InvitationList = ({
                   color="blue-link"
                   hasIcon
                   onClick={() =>
-                    handleCopy(`${window.origin}/invitation/${invite.id}`)
+                    handleCopy(`${window.origin}/invitations/${invite.id}`)
                   }
                 >
                   <HiOutlineClipboardCopy />
