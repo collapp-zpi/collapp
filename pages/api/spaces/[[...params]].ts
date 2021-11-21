@@ -125,6 +125,11 @@ class Spaces {
             width: true,
             top: true,
             left: true,
+            plugin: {
+              select: {
+                isDeleted: true,
+              },
+            },
           },
         },
       },

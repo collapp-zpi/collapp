@@ -65,10 +65,14 @@ interface PluginBlockProps extends PluginBlockSize {
   spaceId: string
   userId: string
   users: { [key: string]: SimpleUserItem }
+  isDeleted: Boolean
 }
 
 interface PluginBlockItem extends PluginBlockSize {
   pluginId: string
+  plugin: {
+    isDeleted: Boolean
+  }
 }
 
 interface SimpleUserItem {
@@ -85,6 +89,7 @@ const PluginBlock = ({
   left,
   width,
   height,
+  isDeleted,
 }: PluginBlockProps) => {
   const spacePluginId = `${spaceId}_${pluginId}`
   const componentUrl = `https://cloudfront.collapp.live/plugins/${pluginId}/entry.js`
@@ -107,7 +112,7 @@ const PluginBlock = ({
           <CgSpinner className="animate-spin text-gray-500 text-xl" />
         </Tooltip>
       )}
-      {err && (
+      {(err || isDeleted) && (
         <Tooltip
           value={`Somethig is wrong with plugin ${spacePluginId}`}
           className="m-auto"
@@ -118,7 +123,7 @@ const PluginBlock = ({
           </div>
         </Tooltip>
       )}
-      {!loading && !err && (
+      {!loading && !err && !isDeleted && (
         <div className={pluginId} style={{ width: '100%', height: '100%' }}>
           <Component
             websockets={websocketsUrl}
@@ -208,13 +213,14 @@ const Space = () => {
           <p className="whitespace-pre-wrap">{description}</p>
           <div className="flex mt-12">
             <PluginGrid>
-              {plugins.map(({ pluginId, ...size }: PluginBlockItem) => (
+              {plugins.map(({ pluginId, plugin, ...size }: PluginBlockItem) => (
                 <PluginBlock
                   key={pluginId}
                   pluginId={pluginId}
                   spaceId={pathId}
                   userId={(session?.data?.userId as string) ?? ''}
                   users={users}
+                  isDeleted={plugin.isDeleted}
                   {...size}
                 />
               ))}
