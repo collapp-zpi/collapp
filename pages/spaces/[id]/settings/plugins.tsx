@@ -24,7 +24,7 @@ import {
   PluginGrid,
   PluginRepoContext,
 } from 'includes/spaces/plugin-editor/PluginGrid'
-import { fetchApi } from 'shared/utils/fetchApi'
+import { fetchApiFallback } from 'shared/utils/fetchApi'
 
 interface Plugin extends SpacePlugin {
   plugin: PublishedPlugin
@@ -33,19 +33,23 @@ interface Plugin extends SpacePlugin {
 export const getServerSideProps = async (
   context: GetServerSidePropsContext,
 ) => {
-  const { id } = context.query
-  const res = await fetchApi(`/api/plugins/space/${id}`)(context)
-  const permissions = await fetchApi(`/api/spaces/${id}/permissions`)(context)
+  const id = String(context.query.id)
+  const fetch = fetchApiFallback(context)
+
+  const plugins = await fetch(
+    ['space', id, 'plugins'],
+    `/api/plugins/space/${id}`,
+  )
+  const permissions = await fetch(
+    ['permissions', id],
+    `/api/spaces/${id}/permissions`,
+  )
 
   return {
     props: {
       fallback: {
-        [generateKey('space', String(id), 'plugins')]: res.ok
-          ? await res.json()
-          : undefined,
-        [generateKey('permissions', String(id))]: permissions.ok
-          ? await permissions.json()
-          : undefined,
+        ...plugins,
+        ...permissions,
       },
     },
   }

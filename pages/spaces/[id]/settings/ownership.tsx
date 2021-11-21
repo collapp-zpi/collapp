@@ -1,4 +1,4 @@
-import type { GetServerSideProps } from 'next'
+import { GetServerSidePropsContext } from 'next'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import Button from 'shared/components/button/Button'
@@ -23,22 +23,25 @@ import { Layout } from 'layouts/Layout'
 import { ErrorInfo } from 'shared/components/ErrorInfo'
 import { LogoSpinner } from 'shared/components/LogoSpinner'
 import { defaultSpaceIcon } from 'shared/utils/defaultIcons'
-import { fetchApi } from 'shared/utils/fetchApi'
+import { fetchApiFallback } from 'shared/utils/fetchApi'
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const { id } = context.query
-  const res = await fetchApi(`/api/spaces/${id}`)(context)
-  const permissions = await fetchApi(`/api/spaces/${id}/permissions`)(context)
+export const getServerSideProps = async (
+  context: GetServerSidePropsContext,
+) => {
+  const id = String(context.query.id)
+  const fetch = fetchApiFallback(context)
+
+  const space = await fetch(['space', id], `/api/spaces/${id}`)
+  const permissions = await fetch(
+    ['permissions', id],
+    `/api/spaces/${id}/permissions`,
+  )
 
   return {
     props: {
       fallback: {
-        [generateKey('space', String(id))]: res.ok
-          ? await res.json()
-          : undefined,
-        [generateKey('permissions', String(id))]: permissions.ok
-          ? await permissions.json()
-          : undefined,
+        ...space,
+        ...permissions,
       },
     },
   }

@@ -3,7 +3,6 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import Button from 'shared/components/button/Button'
 import { GoChevronLeft } from 'react-icons/go'
-import { generateKey } from 'shared/utils/object'
 import { useQuery } from 'shared/hooks/useQuery'
 import { withFallback } from 'shared/hooks/useApiForm'
 import styled from 'styled-components'
@@ -18,28 +17,26 @@ import React, { useMemo } from 'react'
 import InviteButton from 'includes/invitations/InviteButton'
 import { useRemoteComponent } from 'tools/useRemoteComponent'
 import { BiErrorAlt } from 'react-icons/bi'
-import { fetchApi } from 'shared/utils/fetchApi'
+import { fetchApiFallback } from 'shared/utils/fetchApi'
 import { useSession } from 'next-auth/react'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const { id } = context.query
+  const id = String(context.query.id)
+  const fetch = fetchApiFallback(context)
 
-  const res = await fetchApi(`/api/spaces/${id}`)(context)
-  const permissions = await fetchApi(`/api/spaces/${id}/permissions`)(context)
-  const users = await fetchApi(`/api/spaces/${id}/users`)(context)
+  const data = await fetch(['space', id], `/api/spaces/${id}`)
+  const users = await fetch(['space', id, 'users'], `/api/spaces/${id}/users`)
+  const permissions = await fetch(
+    ['permissions', id],
+    `/api/spaces/${id}/permissions`,
+  )
 
   return {
     props: {
       fallback: {
-        [generateKey('space', String(id), 'users')]: users.ok
-          ? await users.json()
-          : undefined,
-        [generateKey('space', String(id))]: res.ok
-          ? await res.json()
-          : undefined,
-        [generateKey('permissions', String(id))]: permissions.ok
-          ? await permissions.json()
-          : undefined,
+        ...data,
+        ...users,
+        ...permissions,
       },
     },
   }
@@ -65,13 +62,13 @@ interface PluginBlockProps extends PluginBlockSize {
   spaceId: string
   userId: string
   users: { [key: string]: SimpleUserItem }
-  isDeleted: Boolean
+  isDeleted: boolean
 }
 
 interface PluginBlockItem extends PluginBlockSize {
   pluginId: string
   plugin: {
-    isDeleted: Boolean
+    isDeleted: boolean
   }
 }
 

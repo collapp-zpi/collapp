@@ -10,7 +10,6 @@ import { updateUser } from 'includes/user/endpoints'
 import { useSWRConfig } from 'swr'
 import useApiForm, { withFallback } from 'shared/hooks/useApiForm'
 import Form from 'shared/components/form/Form'
-import { generateKey } from 'shared/utils/object'
 import { useQuery } from 'shared/hooks/useQuery'
 import { ErrorInfo } from 'shared/components/ErrorInfo'
 import { LogoSpinner } from 'shared/components/LogoSpinner'
@@ -19,16 +18,14 @@ import { withAuth } from 'shared/hooks/useAuth'
 import React from 'react'
 import { AccountDeleteForm } from 'includes/user/AccountDeleteForm'
 import { defaultUserIcon } from 'shared/utils/defaultIcons'
-import { fetchApi } from 'shared/utils/fetchApi'
+import { fetchApiFallback } from 'shared/utils/fetchApi'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const res = await fetchApi(`/api/user`)(context)
+  const user = await fetchApiFallback(context)(['user'], `/api/user`)
 
   return {
     props: {
-      fallback: {
-        [generateKey('user')]: res.ok ? await res.json() : undefined,
-      },
+      fallback: { ...user },
     },
   }
 }

@@ -3,7 +3,7 @@ import Head from 'next/head'
 import { withFilters } from 'shared/hooks/useFilters'
 import { useQuery } from 'shared/hooks/useQuery'
 import { LogoSpinner } from 'shared/components/LogoSpinner'
-import { generateKey, objectPick } from 'shared/utils/object'
+import { objectPick } from 'shared/utils/object'
 import { CgMathPlus } from 'react-icons/cg'
 import Link from 'next/link'
 import { Layout } from 'layouts/Layout'
@@ -11,19 +11,18 @@ import { withAuth } from 'shared/hooks/useAuth'
 import { ErrorInfo } from 'shared/components/ErrorInfo'
 import { Tooltip } from 'shared/components/Tooltip'
 import { defaultSpaceIcon, defaultUserIcon } from 'shared/utils/defaultIcons'
-import { fetchApi } from 'shared/utils/fetchApi'
+import { fetchApiFallback } from 'shared/utils/fetchApi'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const params = objectPick(context.query, ['limit', 'page'])
   const search = new URLSearchParams(params)
+  const fetch = fetchApiFallback(context)
 
-  const res = await fetchApi(`/api/spaces?${search}`)(context)
+  const spaces = await fetch(['spaces', params], `/api/spaces?${search}`)
 
   return {
     props: {
-      fallback: {
-        [generateKey('spaces', params)]: res.ok ? await res.json() : undefined,
-      },
+      fallback: { ...spaces },
     },
   }
 }

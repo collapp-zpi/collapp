@@ -1,4 +1,4 @@
-import type { GetServerSideProps } from 'next'
+import { GetServerSidePropsContext } from 'next'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import Button from 'shared/components/button/Button'
@@ -28,22 +28,25 @@ import { CgSpinner } from 'react-icons/cg'
 import React, { useState } from 'react'
 import useRequest from 'shared/hooks/useRequest'
 import request from 'shared/utils/request'
-import { fetchApi } from 'shared/utils/fetchApi'
+import { fetchApiFallback } from 'shared/utils/fetchApi'
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const { id } = context.query
-  const res = await fetchApi(`/api/spaces/${id}`)(context)
-  const permissions = await fetchApi(`/api/spaces/${id}/permissions`)(context)
+export const getServerSideProps = async (
+  context: GetServerSidePropsContext,
+) => {
+  const id = String(context.query.id)
+  const fetch = fetchApiFallback(context)
+
+  const space = await fetch(['space', id], `/api/spaces/${id}`)
+  const permissions = await fetch(
+    ['permissions', id],
+    `/api/spaces/${id}/permissions`,
+  )
 
   return {
     props: {
       fallback: {
-        [generateKey('space', String(id))]: res.ok
-          ? await res.json()
-          : undefined,
-        [generateKey('permissions', String(id))]: permissions.ok
-          ? await permissions.json()
-          : undefined,
+        ...space,
+        ...permissions,
       },
     },
   }

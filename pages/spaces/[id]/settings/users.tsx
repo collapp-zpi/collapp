@@ -25,28 +25,30 @@ import { CgSpinner } from 'react-icons/cg'
 import { RiVipCrownLine } from 'react-icons/ri'
 import Modal from 'shared/components/Modal'
 import InvitationList from 'includes/invitations/InvitationList'
-import { fetchApi } from 'shared/utils/fetchApi'
+import { fetchApiFallback } from 'shared/utils/fetchApi'
 
 export const getServerSideProps = async (
   context: GetServerSidePropsContext,
 ) => {
-  const { id } = context.query
-  const res = await fetchApi(`/api/spaces/${id}/users`)(context)
-  const permissions = await fetchApi(`/api/spaces/${id}/permissions`)(context)
-  const invitations = await fetchApi(`/api/invitation/space/${id}`)(context)
+  const id = String(context.query.id)
+  const fetch = fetchApiFallback(context)
+
+  const users = await fetch(['space', id, 'users'], `/api/spaces/${id}/users`)
+  const permissions = await fetch(
+    ['permissions', id],
+    `/api/spaces/${id}/permissions`,
+  )
+  const invitations = await fetch(
+    ['invitations', id],
+    `/api/invitation/space/${id}`,
+  )
 
   return {
     props: {
       fallback: {
-        [generateKey('space', String(id), 'users')]: res.ok
-          ? await res.json()
-          : undefined,
-        [generateKey('permissions', String(id))]: permissions.ok
-          ? await permissions.json()
-          : undefined,
-        [generateKey('invitations', String(id))]: invitations.ok
-          ? await invitations.json()
-          : undefined,
+        ...users,
+        ...permissions,
+        ...invitations,
       },
     },
   }
