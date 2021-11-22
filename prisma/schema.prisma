@@ -30,7 +30,7 @@ model DraftPlugin {
   name        String
   description String
   createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   isPending   Boolean          @default(false)
   isBuilding  Boolean          @default(false)
   icon        String?
@@ -55,7 +55,7 @@ model PublishedPlugin {
   name        String
   description String
   version     Int              @default(1)
-  updatedAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   icon        String?
 
   source      File?
@@ -221,6 +221,7 @@ model PluginLog {
 
 model Space {
   id          String           @id @default(cuid())
+  createdAt   DateTime         @default(now())
   name        String
   description String
   icon        String?
