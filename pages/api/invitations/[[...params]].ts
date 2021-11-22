@@ -103,6 +103,9 @@ class Invitations {
       where: {
         spaceId: id,
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
     })
   }
 
