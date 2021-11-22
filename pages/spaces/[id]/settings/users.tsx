@@ -7,11 +7,9 @@ import React, { useState } from 'react'
 import InviteButton from 'includes/invitations/InviteButton'
 import { withAuth } from 'shared/hooks/useAuth'
 import { Layout } from 'layouts/Layout'
-import { GetServerSidePropsContext } from 'next'
 import { generateKey } from 'shared/utils/object'
 import { useQuery } from 'shared/hooks/useQuery'
 import { Loading } from 'layouts/Loading'
-import { withFallback } from 'shared/hooks/useApiForm'
 import { SpaceUser } from '.pnpm/@prisma+client@3.3.0_prisma@3.3.0/node_modules/.prisma/client'
 import { useSWRConfig } from 'swr'
 import request from 'shared/utils/request'
@@ -25,34 +23,6 @@ import { CgSpinner } from 'react-icons/cg'
 import { RiVipCrownLine } from 'react-icons/ri'
 import Modal from 'shared/components/Modal'
 import InvitationList from 'includes/invitations/InvitationList'
-import { fetchApiFallback } from 'shared/utils/fetchApi'
-
-export const getServerSideProps = async (
-  context: GetServerSidePropsContext,
-) => {
-  const id = String(context.query.id)
-  const fetch = fetchApiFallback(context)
-
-  const users = await fetch(['space', id, 'users'], `/api/spaces/${id}/users`)
-  const permissions = await fetch(
-    ['permissions', id],
-    `/api/user/space/${id}/permissions`,
-  )
-  const invitations = await fetch(
-    ['invitations', id],
-    `/api/invitations/space/${id}`,
-  )
-
-  return {
-    props: {
-      fallback: {
-        ...users,
-        ...permissions,
-        ...invitations,
-      },
-    },
-  }
-}
 
 const SpaceUserSettings = () => {
   const router = useRouter()
@@ -131,7 +101,7 @@ const SpaceUserSettings = () => {
   )
 }
 
-export default withAuth(withFallback(SpaceUserSettings))
+export default withAuth(SpaceUserSettings)
 
 const PermissionsForm = ({ data, isOwner }) => {
   const router = useRouter()

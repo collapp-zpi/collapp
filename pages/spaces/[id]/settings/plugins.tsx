@@ -4,7 +4,6 @@ import Button from 'shared/components/button/Button'
 import { GoChevronLeft } from 'react-icons/go'
 import { SpaceSettingsButtons } from 'includes/spaces/components/SpaceSettingsButtons'
 import { useState } from 'react'
-import { GetServerSidePropsContext } from 'next'
 import { PublishedPlugin, SpacePlugin } from '@prisma/client'
 import useRequest from 'shared/hooks/useRequest'
 import { updateSpacePlugins } from 'includes/spaces/endpoints'
@@ -17,42 +16,15 @@ import { generateKey } from 'shared/utils/object'
 import { useQuery } from 'shared/hooks/useQuery'
 import { ErrorInfo } from 'shared/components/ErrorInfo'
 import { LogoSpinner } from 'shared/components/LogoSpinner'
-import { withFallback } from 'shared/hooks/useApiForm'
 import { useSWRConfig } from 'swr'
 import {
   MappedType,
   PluginGrid,
   PluginRepoContext,
 } from 'includes/spaces/plugin-editor/PluginGrid'
-import { fetchApiFallback } from 'shared/utils/fetchApi'
 
 interface Plugin extends SpacePlugin {
   plugin: PublishedPlugin
-}
-
-export const getServerSideProps = async (
-  context: GetServerSidePropsContext,
-) => {
-  const id = String(context.query.id)
-  const fetch = fetchApiFallback(context)
-
-  const plugins = await fetch(
-    ['space', id, 'plugins'],
-    `/api/plugins/space/${id}`,
-  )
-  const permissions = await fetch(
-    ['permissions', id],
-    `/api/user/space/${id}/permissions`,
-  )
-
-  return {
-    props: {
-      fallback: {
-        ...plugins,
-        ...permissions,
-      },
-    },
-  }
 }
 
 export type LayoutType = {
@@ -104,7 +76,7 @@ const SpacePluginSettings = () => {
   )
 }
 
-export default withAuth(withFallback(SpacePluginSettings))
+export default withAuth(SpacePluginSettings)
 
 const InnerPlugins = ({ plugins }: { plugins: Plugin[] }) => {
   const { mutate } = useSWRConfig()
