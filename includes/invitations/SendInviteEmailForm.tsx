@@ -14,7 +14,7 @@ const schema = object().shape({
 
 const SendInviteEmailForm = ({ link }: { link: string }) => {
   const apiForm = useApiForm({
-    query: (data: any) => request.post(`/api/invitation/${link}/send`, data),
+    query: (data: any) => request.post(`/api/invitations/${link}/send`, data),
     schema,
     onSuccess: (_, methods) => {
       toast.success('Email was sent')

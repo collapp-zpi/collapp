@@ -17,6 +17,14 @@ import {
 } from '@storyofams/next-api-decorators'
 import { NextAuthGuard, RequestUser, User } from 'shared/utils/apiDecorators'
 import { IsNotEmpty, IsOptional, NotEquals } from 'class-validator'
+import {
+  spaceExists,
+  spaceFindExists,
+  userCanEdit,
+  userCanInvite,
+  userIsMember,
+  userIsOwner,
+} from 'includes/spaces/spaceRequestValidation'
 
 export class CreateSpaceDTO {
   @IsNotEmpty({ message: 'Space name is required.' })
@@ -49,11 +57,6 @@ type UpdateSpaceUserItem = {
 
 type UpdateSpaceUserPermissions = {
   [key: string]: UpdateSpaceUserItem
-}
-
-export class CreateInviteDTO {
-  @IsNotEmpty({ message: 'Timeframe is required' })
-  timeframe!: string
 }
 
 @NextAuthGuard()
@@ -143,9 +146,7 @@ class Spaces {
       },
     })
 
-    if (!space) {
-      throw new NotFoundException('The space does not exist.')
-    }
+    await spaceExists(space)
 
     return space
   }
@@ -184,20 +185,7 @@ class Spaces {
     @Body(ValidationPipe) body: UpdateSpaceDTO,
     @User user: RequestUser,
   ) {
-    const space = await prisma.space.findFirst({
-      where: {
-        id,
-        users: {
-          some: {
-            userId: user.id,
-          },
-        },
-      },
-    })
-
-    if (!space) {
-      throw new NotFoundException('The space does not exist.')
-    }
+    await userCanEdit(await userIsMember(user.id, id))
 
     return await prisma.space.update({
       where: { id },
@@ -211,6 +199,8 @@ class Spaces {
     @Body() body: UpdateSpacePluginsItem[],
     @User user: RequestUser,
   ) {
+    await userCanEdit(await userIsMember(user.id, id))
+
     const space = await prisma.space.findFirst({
       include: {
         plugins: true,
@@ -225,9 +215,7 @@ class Spaces {
       },
     })
 
-    if (!space) {
-      throw new NotFoundException('The space does not exist.')
-    }
+    await spaceExists(space)
 
     const newPlugins = {} as { [key: string]: UpdateSpacePluginsItem }
     for (const item of body) {
@@ -282,100 +270,10 @@ class Spaces {
     })
   }
 
-  @Post('/:id/invite')
-  async generateInvite(
-    @Param('id') id: string,
-    @Body(ValidationPipe) body: CreateInviteDTO,
-    @User user: RequestUser,
-  ) {
-    const space = await prisma.space.findFirst({
-      where: {
-        id,
-      },
-    })
-
-    if (!space) {
-      throw new NotFoundException('The space does not exist.')
-    }
-
-    const spaceUser = await prisma.spaceUser.findFirst({
-      where: {
-        spaceId: id,
-        userId: user.id,
-      },
-    })
-
-    if (!spaceUser) {
-      throw new UnauthorizedException(
-        'Users outside the space cannot generate invitations.',
-      )
-    }
-    if (!spaceUser.canInvite && !spaceUser.isOwner) {
-      throw new UnauthorizedException(
-        'Only users with invite permisions can generate invitations.',
-      )
-    }
-
-    let expire: number | null = 0
-    switch (body.timeframe) {
-      case '1':
-        expire = 1
-        break
-      case '3':
-        expire = 3
-        break
-      case '7':
-        expire = 7
-        break
-      default:
-        expire = null
-    }
-
-    const today = new Date()
-    let expireDay = null
-    if (!!expire) {
-      expireDay = new Date()
-      expireDay.setDate(today.getDate() + expire)
-    }
-
-    const invite = await prisma.invite.create({
-      data: {
-        expiresAt: expireDay,
-        space: {
-          connect: {
-            id: id,
-          },
-        },
-      },
-    })
-
-    return invite
-  }
-
   @Get('/:id/users')
   async getSpaceUsers(@Param('id') id: string, @User user: RequestUser) {
-    const space = await prisma.space.findFirst({
-      where: {
-        id: id,
-      },
-    })
-
-    if (!space) {
-      throw new NotFoundException('The space does not exist.')
-    }
-
-    const spaceUser = await prisma.spaceUser.findFirst({
-      where: {
-        spaceId: id,
-        userId: user.id,
-      },
-    })
-
-    if (!spaceUser) {
-      throw new UnauthorizedException(
-        'Users outside the space cannot view space members.',
-      )
-    }
+    await spaceFindExists(id)
+    await userIsMember(user.id, id)
 
     return await prisma.spaceUser.findMany({
       where: {
@@ -387,63 +285,11 @@ class Spaces {
     })
   }
 
-  @Get('/:id/permissions')
-  async getPermissions(@Param('id') id: string, @User user: RequestUser) {
-    const space = await prisma.space.findFirst({
-      where: {
-        id: id,
-      },
-    })
-
-    if (!space) {
-      throw new NotFoundException('The space does not exist.')
-    }
-
-    const spaceUser = await prisma.spaceUser.findFirst({
-      where: {
-        spaceId: id,
-        userId: user.id,
-      },
-      select: {
-        isOwner: true,
-        canEdit: true,
-        canInvite: true,
-      },
-    })
-
-    if (!spaceUser) {
-      throw new UnauthorizedException('User is not a member of this space.')
-    }
-
-    return spaceUser
-  }
-
   @Delete('/:id')
   async deleteSpace(@Param('id') id: string, @User user: RequestUser) {
-    const space = await prisma.space.findFirst({
-      where: {
-        id: id,
-      },
-    })
-
-    if (!space) {
-      throw new NotFoundException('The space does not exist.')
-    }
-
-    const spaceUser = await prisma.spaceUser.findFirst({
-      where: {
-        spaceId: id,
-        userId: user.id,
-      },
-    })
-
-    if (!spaceUser) {
-      throw new UnauthorizedException('Users is not a member of this space.')
-    }
-
-    if (!spaceUser.isOwner) {
-      throw new UnauthorizedException('Only space owners can delete spaces.')
-    }
+    await spaceFindExists(id)
+    const spaceUser = await userIsMember(user.id, id)
+    await userIsOwner(spaceUser)
 
     return await prisma.space.delete({
       where: {
@@ -454,26 +300,8 @@ class Spaces {
 
   @Delete('/:id/user')
   async leaveSpace(@Param('id') id: string, @User user: RequestUser) {
-    const space = await prisma.space.findFirst({
-      where: {
-        id: id,
-      },
-    })
-
-    if (!space) {
-      throw new NotFoundException('The space does not exist.')
-    }
-
-    const spaceUser = await prisma.spaceUser.findFirst({
-      where: {
-        spaceId: id,
-        userId: user.id,
-      },
-    })
-
-    if (!spaceUser) {
-      throw new UnauthorizedException('Users is not a member of this space.')
-    }
+    await spaceFindExists(id)
+    const spaceUser = await userIsMember(user.id, id)
 
     if (spaceUser.isOwner) {
       throw new BadRequestException('Space owner cannot leave their spaces.')
@@ -495,48 +323,14 @@ class Spaces {
     @Param('userId') userId: string,
     @User user: RequestUser,
   ) {
-    const space = await prisma.space.findFirst({
-      where: {
-        id: id,
-      },
-    })
-
-    if (!space) {
-      throw new NotFoundException('The space does not exist.')
-    }
-
-    const spaceUser = await prisma.spaceUser.findFirst({
-      where: {
-        spaceId: id,
-        userId: user.id,
-      },
-    })
-
-    if (!spaceUser) {
-      throw new UnauthorizedException(
-        'Users outside the space cannot remove users.',
-      )
-    }
-
-    if (!spaceUser.canInvite && !spaceUser.isOwner) {
-      throw new UnauthorizedException(
-        'Only users with invite permisions can remove users.',
-      )
-    }
-
-    const spaceUserToDelete = await prisma.spaceUser.findFirst({
-      where: { userId: userId },
-    })
-
-    if (!spaceUserToDelete) {
-      throw new BadRequestException(
-        'Requested user to remove is not a member of this space.',
-      )
-    }
+    await spaceFindExists(id)
+    const spaceUser = await userIsMember(user.id, id)
+    await userIsOwner(spaceUser)
+    const spaceUserToDelete = await userIsMember(userId, id)
 
     if (spaceUserToDelete.isOwner) {
       throw new BadRequestException(
-        'Requested user to remove is an owner of the space.',
+        'User cannot be removed because they own the space.',
       )
     }
 
@@ -556,32 +350,9 @@ class Spaces {
     @User user: RequestUser,
     @Body() body: UpdateSpaceUserPermissions,
   ) {
-    const space = await prisma.space.findFirst({
-      where: { id },
-    })
-
-    if (!space) {
-      throw new NotFoundException('The space does not exist.')
-    }
-
-    const spaceUser = await prisma.spaceUser.findFirst({
-      where: {
-        spaceId: id,
-        userId: user.id,
-      },
-    })
-
-    if (!spaceUser) {
-      throw new UnauthorizedException(
-        'Users outside the space cannot update permissions.',
-      )
-    }
-
-    if (!spaceUser.isOwner) {
-      throw new UnauthorizedException(
-        'Only space owners can update persmissions.',
-      )
-    }
+    await spaceFindExists(id)
+    const spaceUser = await userIsMember(user.id, id)
+    await userIsOwner(spaceUser)
 
     const update = Object.entries(body).map(([userId, data]) => ({
       where: { userId },
@@ -604,32 +375,9 @@ class Spaces {
     @User user: RequestUser,
     @Body() body: string,
   ) {
-    const space = await prisma.space.findFirst({
-      where: { id },
-    })
-
-    if (!space) {
-      throw new NotFoundException('The space does not exist.')
-    }
-
-    const spaceUser = await prisma.spaceUser.findFirst({
-      where: {
-        spaceId: id,
-        userId: user.id,
-      },
-    })
-
-    if (!spaceUser) {
-      throw new UnauthorizedException(
-        'Users outside the space cannot transfer ownership.',
-      )
-    }
-
-    if (!spaceUser.isOwner) {
-      throw new UnauthorizedException(
-        'Only space owner can transfer ownership.',
-      )
-    }
+    await spaceFindExists(id)
+    const spaceUser = await userIsMember(user.id, id)
+    await userIsOwner(spaceUser)
 
     if (user.id === body) {
       throw new BadRequestException(

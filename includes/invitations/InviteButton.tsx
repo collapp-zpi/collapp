@@ -43,7 +43,7 @@ const InviteButton = ({ spaceId }: { spaceId: string }) => {
     mutate(generateKey('invitations', spaceId))
   }
 
-  const url = `${window.origin}/invitation/${link}`
+  const url = `${window.origin}/invitations/${link}`
 
   const handleCopy = () => {
     copy(url)
@@ -101,7 +101,7 @@ const InviteButton = ({ spaceId }: { spaceId: string }) => {
           <div>
             <UncontrolledForm
               query={(data) =>
-                request.post(`/api/spaces/${spaceId}/invite`, data)
+                request.post(`/api/invitations/space/${spaceId}`, data)
               }
               {...{ schema, onSuccess, onError }}
               className="flex flex-col"

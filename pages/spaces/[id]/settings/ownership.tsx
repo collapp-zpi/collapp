@@ -29,7 +29,7 @@ const SpaceSettings = () => {
   const { data, error } = useQuery(['space', pathId], `/api/spaces/${pathId}`)
   const permissions = useQuery(
     ['permissions', pathId],
-    `/api/spaces/${pathId}/permissions`,
+    `/api/user/space/${pathId}/permissions`,
   )
 
   const { id, name, description, icon } = data || {}

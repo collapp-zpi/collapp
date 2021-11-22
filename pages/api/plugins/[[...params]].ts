@@ -28,6 +28,9 @@ class Plugins {
         where: {
           ...(name && { name: { contains: name, mode: 'insensitive' } }),
         },
+        orderBy: {
+          updatedAt: 'desc',
+        },
       }),
       pagination: { entityCount, limit },
     }

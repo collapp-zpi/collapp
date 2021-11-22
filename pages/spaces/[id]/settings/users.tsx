@@ -31,12 +31,12 @@ const SpaceUserSettings = () => {
   const { data } = useQuery(['space', id, 'users'], `/api/spaces/${id}/users`)
   const invitations = useQuery(
     ['invitations', id],
-    `/api/invitation/space/${id}`,
+    `/api/invitations/space/${id}`,
   )
 
   const permissions = useQuery(
     ['permissions', id],
-    `/api/spaces/${id}/permissions`,
+    `/api/user/space/${id}/permissions`,
   )
 
   const canEdit =
