@@ -1,10 +1,8 @@
-import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import Button from 'shared/components/button/Button'
 import { GoChevronLeft } from 'react-icons/go'
 import { useQuery } from 'shared/hooks/useQuery'
-import { withFallback } from 'shared/hooks/useApiForm'
 import styled from 'styled-components'
 import { FiSettings } from 'react-icons/fi'
 import { ErrorInfo } from 'shared/components/ErrorInfo'
@@ -17,30 +15,7 @@ import React, { useMemo } from 'react'
 import InviteButton from 'includes/invitations/InviteButton'
 import { useRemoteComponent } from 'tools/useRemoteComponent'
 import { BiErrorAlt } from 'react-icons/bi'
-import { fetchApiFallback } from 'shared/utils/fetchApi'
 import { useSession } from 'next-auth/react'
-
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const id = String(context.query.id)
-  const fetch = fetchApiFallback(context)
-
-  const data = await fetch(['space', id], `/api/spaces/${id}`)
-  const users = await fetch(['space', id, 'users'], `/api/spaces/${id}/users`)
-  const permissions = await fetch(
-    ['permissions', id],
-    `/api/spaces/${id}/permissions`,
-  )
-
-  return {
-    props: {
-      fallback: {
-        ...data,
-        ...users,
-        ...permissions,
-      },
-    },
-  }
-}
 
 const PluginGrid = styled.div`
   display: grid;
@@ -229,4 +204,4 @@ const Space = () => {
   )
 }
 
-export default withAuth(withFallback(Space))
+export default withAuth(Space)

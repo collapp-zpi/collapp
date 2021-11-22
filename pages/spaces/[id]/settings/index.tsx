@@ -1,11 +1,10 @@
-import { GetServerSidePropsContext } from 'next'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import Button from 'shared/components/button/Button'
 import { GoChevronLeft } from 'react-icons/go'
 import { generateKey } from 'shared/utils/object'
 import { useQuery } from 'shared/hooks/useQuery'
-import useApiForm, { withFallback } from 'shared/hooks/useApiForm'
+import useApiForm from 'shared/hooks/useApiForm'
 import { useSWRConfig } from 'swr'
 import { toast } from 'react-hot-toast'
 import Form from 'shared/components/form/Form'
@@ -28,29 +27,6 @@ import { CgSpinner } from 'react-icons/cg'
 import React, { useState } from 'react'
 import useRequest from 'shared/hooks/useRequest'
 import request from 'shared/utils/request'
-import { fetchApiFallback } from 'shared/utils/fetchApi'
-
-export const getServerSideProps = async (
-  context: GetServerSidePropsContext,
-) => {
-  const id = String(context.query.id)
-  const fetch = fetchApiFallback(context)
-
-  const space = await fetch(['space', id], `/api/spaces/${id}`)
-  const permissions = await fetch(
-    ['permissions', id],
-    `/api/spaces/${id}/permissions`,
-  )
-
-  return {
-    props: {
-      fallback: {
-        ...space,
-        ...permissions,
-      },
-    },
-  }
-}
 
 const SpaceSettings = () => {
   const router = useRouter()
@@ -241,7 +217,7 @@ const SpaceSettings = () => {
   )
 }
 
-export default withAuth(withFallback(SpaceSettings))
+export default withAuth(SpaceSettings)
 
 interface SpaceFormProps {
   name: string

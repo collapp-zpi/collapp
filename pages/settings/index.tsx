@@ -5,10 +5,9 @@ import { InputPhoto } from 'shared/components/input/InputPhoto'
 import { InputText } from 'shared/components/input/InputText'
 import { BiText } from 'react-icons/bi'
 import SubmitButton from 'shared/components/button/SubmitButton'
-import { GetServerSideProps } from 'next'
 import { updateUser } from 'includes/user/endpoints'
 import { useSWRConfig } from 'swr'
-import useApiForm, { withFallback } from 'shared/hooks/useApiForm'
+import useApiForm from 'shared/hooks/useApiForm'
 import Form from 'shared/components/form/Form'
 import { useQuery } from 'shared/hooks/useQuery'
 import { ErrorInfo } from 'shared/components/ErrorInfo'
@@ -18,17 +17,6 @@ import { withAuth } from 'shared/hooks/useAuth'
 import React from 'react'
 import { AccountDeleteForm } from 'includes/user/AccountDeleteForm'
 import { defaultUserIcon } from 'shared/utils/defaultIcons'
-import { fetchApiFallback } from 'shared/utils/fetchApi'
-
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const user = await fetchApiFallback(context)(['user'], `/api/user`)
-
-  return {
-    props: {
-      fallback: { ...user },
-    },
-  }
-}
 
 const schema = object().shape({
   name: string().required().default(''),
@@ -37,7 +25,6 @@ const schema = object().shape({
 
 const UserSettings = () => {
   const { data, error } = useQuery('user', `/api/user`)
-  const { name, image } = data
 
   return (
     <Layout>
@@ -60,7 +47,7 @@ const UserSettings = () => {
             <h1 className="text-2xl font-bold text-gray-500 mb-4">
               User settings
             </h1>
-            <UserForm {...{ name, image }} />
+            <UserForm name={data.name} image={data.image} />
           </div>
           <div className="bg-white px-8 py-8 mt-12 rounded-3xl shadow-2xl">
             <AccountDeleteForm />
@@ -71,7 +58,7 @@ const UserSettings = () => {
   )
 }
 
-export default withAuth(withFallback(UserSettings))
+export default withAuth(UserSettings)
 
 interface UserFormProps {
   name: string
