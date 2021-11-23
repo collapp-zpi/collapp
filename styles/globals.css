@@ -57,3 +57,38 @@ a {
   stroke-dashoffset: 0;
   animation: spinner-border 0.5s linear both infinite;
 }
+
+/* ===== Scrollbar CSS ===== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-button {
+  width: 0;
+  height: 0;
+}
+::-webkit-scrollbar-thumb {
+  background: theme('colors.gray.400');
+  border: 0 none #ffffff;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: theme('colors.gray.500');
+}
+::-webkit-scrollbar-thumb:active {
+  background: theme('colors.gray.500');
+}
+::-webkit-scrollbar-track {
+  background: theme('colors.gray.100');
+  border: 0 none #ffffff;
+  border-radius: 0;
+}
+::-webkit-scrollbar-track:hover {
+  background: theme('colors.gray.100');
+}
+::-webkit-scrollbar-track:active {
+  background: theme('colors.gray.100');
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
