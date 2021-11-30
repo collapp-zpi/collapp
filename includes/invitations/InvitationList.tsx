@@ -42,7 +42,7 @@ const InvitationList = ({
     <table className="mt-8 w-full">
       <thead>
         <tr>
-          <th>Expires at</th>
+          <th>Expires after</th>
         </tr>
       </thead>
       <tbody>
