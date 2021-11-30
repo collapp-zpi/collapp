@@ -109,7 +109,7 @@ const InviteButton = ({ spaceId }: { spaceId: string }) => {
               <InputSelect
                 className="w-96"
                 name="timeframe"
-                label="Expire at"
+                label="Expire after"
                 options={options}
                 onChange={(data: any) => {}}
                 isClearable={false}
