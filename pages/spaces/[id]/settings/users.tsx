@@ -157,6 +157,7 @@ const PermissionsForm = ({ data, isOwner }) => {
         toast.success('The ownership was successfully transferred')
         mutate(generateKey('space', id, 'users'))
         mutate(generateKey('permissions', id))
+        setWasEdited(false)
         setTransferModal(null)
       },
       onError: () => {
