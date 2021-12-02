@@ -138,7 +138,7 @@ const Space = () => {
     return users
   }, [usersQuery.data])
 
-  const { id, name, description, plugins } = data || {}
+  const { name, description, plugins } = data || {}
 
   return (
     <Layout>
@@ -161,7 +161,7 @@ const Space = () => {
 
           <Button
             color="light"
-            onClick={() => router.push(`/spaces/${id}/settings`)}
+            onClick={() => router.push(`/spaces/${pathId}/settings`)}
             className="mb-4"
           >
             <FiSettings className="mr-2 -ml-2" />
