@@ -136,7 +136,7 @@ const PermissionsForm = ({ data, isOwner }) => {
   )
 
   const updateUsers = useRequest(
-    () => request.patch(`/api/spaces/${id}/permissions`, state),
+    () => request.put(`/api/spaces/${id}/permissions`, state),
     {
       onSuccess: () => {
         toast.success('Permissions were successfully updated')

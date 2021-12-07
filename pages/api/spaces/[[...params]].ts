@@ -344,7 +344,7 @@ class Spaces {
     })
   }
 
-  @Patch(`/:id/permissions`)
+  @Put(`/:id/permissions`)
   async updatePermissions(
     @Param('id') id: string,
     @User user: RequestUser,
