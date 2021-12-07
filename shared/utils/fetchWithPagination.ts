@@ -6,6 +6,7 @@ export async function fetchWithPagination(
   _limit?: number,
   _page?: number,
   where?: { [key: string]: any },
+  orderBy?: { [key: string]: any },
 ) {
   const limit = (_limit && Number(_limit)) || 20
   const page = (_page && Number(_page)) || 1
@@ -22,6 +23,7 @@ export async function fetchWithPagination(
       skip: offset,
       take: limit,
       ...(where && { where }),
+      ...(orderBy && { orderBy }),
     }),
     pagination: { pages, page, limit },
   }

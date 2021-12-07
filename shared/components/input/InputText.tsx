@@ -34,6 +34,7 @@ export const InputText = ({ name, disabled, ...props }: InputTextProps) => {
       ref={ref}
       {...field}
       {...props}
+      name={name}
       value={value ?? props?.value ?? ''}
       isError={invalid}
       disabled={isLoading || disabled}
@@ -63,6 +64,7 @@ export const InputTextPure = forwardRef<
       <input
         ref={ref}
         {...props}
+        name={name}
         value={value ?? ''}
         className={classNames(
           'w-full outline-none px-4 pb-1 pt-5 text-gray-500',
