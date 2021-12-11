@@ -42,11 +42,12 @@ const SpaceUserSettings = () => {
   const canEdit =
     !!permissions.data && (permissions.data.canEdit || permissions.data.isOwner)
 
-  const canViewInvites =
-    !!invitations.data &&
-    invitations.data.length > 0 &&
+  const canInvite =
     !!permissions.data &&
     (permissions.data.canInvite || permissions.data.isOwner)
+
+  const canViewInvites =
+    !!invitations.data && invitations.data.length > 0 && canInvite
 
   return (
     <Layout>
@@ -76,7 +77,7 @@ const SpaceUserSettings = () => {
           <div className="bg-white px-8 py-8 rounded-3xl shadow-2xl">
             <div className="flex items-center justify-between">
               <h1 className="font-bold text-xl">Users</h1>
-              {canEdit && <InviteButton spaceId={id} />}
+              {canInvite && <InviteButton spaceId={id} />}
             </div>
             {!data ? (
               <div className="m-auto">
