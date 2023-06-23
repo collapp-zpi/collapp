@@ -8,7 +8,8 @@ import {
   ValidationPipe,
 } from '@storyofams/next-api-decorators'
 import { prisma } from 'shared/utils/prismaClient'
-import { NextAuthGuard, RequestUser, User } from 'shared/utils/apiDecorators'
+import { NextAuthGuard, User } from 'shared/utils/apiDecorators'
+import type { RequestUser } from 'shared/utils/apiDecorators'
 import {
   invitationExists,
   invitationNotExpired,

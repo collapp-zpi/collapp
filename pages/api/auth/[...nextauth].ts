@@ -5,6 +5,7 @@ import { PrismaExtendedAdapter } from 'shared/utils/PrismaExtendedAdapter'
 import { prisma } from 'shared/utils/prismaClient'
 import { Resend } from 'resend'
 import { SignInTemplate } from 'shared/emailTemplates/sign-in'
+import type { Adapter } from 'next-auth/adapters'
 
 const resend = new Resend(process.env.EMAIL_KEY)
 
@@ -20,17 +21,17 @@ export default NextAuth({
         })
       },
     }),
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
+    // GoogleProvider({
+    //   clientId: process.env.GOOGLE_CLIENT_ID!,
+    //   clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    // }),
   ],
   pages: {
     signIn: '../../',
     error: '../../error',
     signOut: '../../',
   },
-  adapter: PrismaExtendedAdapter('regular'),
+  adapter: PrismaExtendedAdapter('regular') as Adapter,
   secret: process.env.AUTH_SECRET!,
   callbacks: {
     async session({ session, user }) {

@@ -1,5 +1,4 @@
 import { prisma } from 'shared/utils/prismaClient'
-import { RequestUser } from 'shared/utils/apiDecorators'
 import {
   BadRequestException,
   NotFoundException,

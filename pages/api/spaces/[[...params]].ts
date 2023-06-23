@@ -5,23 +5,21 @@ import {
   createHandler,
   Delete,
   Get,
-  NotFoundException,
   Param,
   ParseNumberPipe,
   Patch,
   Post,
   Put,
   Query,
-  UnauthorizedException,
   ValidationPipe,
 } from '@storyofams/next-api-decorators'
-import { NextAuthGuard, RequestUser, User } from 'shared/utils/apiDecorators'
+import { NextAuthGuard, User } from 'shared/utils/apiDecorators'
+import type { RequestUser } from 'shared/utils/apiDecorators'
 import { IsNotEmpty, IsOptional, NotEquals } from 'class-validator'
 import {
   spaceExists,
   spaceFindExists,
   userCanEdit,
-  userCanInvite,
   userIsMember,
   userIsOwner,
 } from 'includes/spaces/spaceRequestValidation'

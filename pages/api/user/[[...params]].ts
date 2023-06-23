@@ -9,7 +9,8 @@ import {
   Patch,
   ValidationPipe,
 } from '@storyofams/next-api-decorators'
-import { NextAuthGuard, RequestUser, User } from 'shared/utils/apiDecorators'
+import { NextAuthGuard, User } from 'shared/utils/apiDecorators'
+import type { RequestUser } from 'shared/utils/apiDecorators'
 import { IsOptional, NotEquals } from 'class-validator'
 import {
   spaceFindExists,
