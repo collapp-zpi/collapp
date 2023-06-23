@@ -2,27 +2,27 @@ import NextAuth from 'next-auth'
 import EmailProvider from 'next-auth/providers/email'
 import GoogleProvider from 'next-auth/providers/google'
 import { PrismaExtendedAdapter } from 'shared/utils/PrismaExtendedAdapter'
-import { LoginEmail } from '@collapp/email-sdk'
 import { prisma } from 'shared/utils/prismaClient'
+import { Resend } from 'resend'
+import { SignInTemplate } from 'shared/emailTemplates/sign-in'
+
+const resend = new Resend(process.env.EMAIL_KEY)
 
 export default NextAuth({
   providers: [
     EmailProvider({
       async sendVerificationRequest({ identifier: email, url }) {
-        await fetch('https://collapp-email-microservice.herokuapp.com/')
-        const mail = new LoginEmail(process.env.RABBIT_URL)
-        await mail.send({
+        await resend.emails.send({
+          from: process.env.EMAIL_FROM!,
           to: email,
           subject: 'Sign in to Collapp',
-          secret: process.env.SECRET,
-          context: { email, url },
+          react: SignInTemplate({ email, redirect: url }),
         })
-        mail.disconnect()
       },
     }),
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
   pages: {

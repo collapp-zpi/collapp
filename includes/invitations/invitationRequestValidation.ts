@@ -3,8 +3,9 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@storyofams/next-api-decorators'
-import { Invite } from '.pnpm/@prisma+client@3.3.0_prisma@3.3.0/node_modules/.prisma/client'
-import { InviteEmail } from '@collapp/email-sdk'
+import { Invite } from '@prisma/client'
+import { Resend } from 'resend'
+import { InviteTemplate } from 'shared/emailTemplates/invite'
 
 const findInvite = async (id: string) => {
   return await prisma.invite.findFirst({
@@ -41,23 +42,22 @@ export const invitationNotExpired = async (invitation: Invite) => {
   }
 }
 
+const resend = new Resend(process.env.EMAIL_KEY)
+
 export const sendInviteEmail = async (
   to: string,
   from: string,
   inviteId: string,
   spaceName: string,
 ) => {
-  await fetch('https://collapp-email-microservice.herokuapp.com/')
-  const mail = new InviteEmail(process.env.RABBIT_URL)
-  await mail.send({
+  await resend.emails.send({
+    from: process.env.EMAIL_FROM!,
     to,
-    subject: `${from} invites you to space ${spaceName}`,
-    secret: process.env.SECRET,
-    context: {
+    subject: 'Invitation in Collapp',
+    react: InviteTemplate({
       from,
       space: spaceName,
-      url: `${process.env.BASE_URL}/invitations/${inviteId}`,
-    },
+      redirect: `${process.env.BASE_URL}/invitations/${inviteId}`,
+    }),
   })
-  mail.disconnect()
 }
