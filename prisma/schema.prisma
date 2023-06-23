@@ -1,81 +1,79 @@
 datasource db {
-  provider          = "postgresql"
-  url               = env("DATABASE_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 generator client {
   provider = "prisma-client-js"
 }
 
-
 // PLUGIN
 
 model File {
-  id                 String               @id @default(cuid())
-  name               String
-  date               DateTime             @default(now())
-  size               Int
-  url                String
+  id   String   @id @default(cuid())
+  name String
+  date DateTime @default(now())
+  size Int
+  url  String
 
-  draft              DraftPlugin?         @relation(fields: [draftId], references: [id])
-  draftId            String?
+  draft   DraftPlugin? @relation(fields: [draftId], references: [id])
+  draftId String?      @unique
 
-  published          PublishedPlugin?     @relation(fields: [publishedId], references: [id])
-  publishedId        String?
+  published   PublishedPlugin? @relation(fields: [publishedId], references: [id])
+  publishedId String?          @unique
 }
 
 model DraftPlugin {
-  id          String           @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
   description String
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  isPending   Boolean          @default(false)
-  isBuilding  Boolean          @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isPending   Boolean  @default(false)
+  isBuilding  Boolean  @default(false)
   icon        String?
 
-  source      File?
+  source File?
 
-  authorId    String?
-  author      DeveloperUser?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorId String?
+  author   DeveloperUser? @relation(fields: [authorId], references: [id], onDelete: SetNull)
 
-  published   PublishedPlugin?
+  published PublishedPlugin?
 
-  minWidth    Int              @default(1)
-  maxWidth    Int              @default(4)
-  minHeight   Int              @default(1)
-  maxHeight   Int              @default(4)
+  minWidth  Int @default(1)
+  maxWidth  Int @default(4)
+  minHeight Int @default(1)
+  maxHeight Int @default(4)
 
-  logs        PluginLog[]
+  logs PluginLog[]
 }
 
 model PublishedPlugin {
-  id          String           @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
   description String
-  version     Int              @default(1)
-  updatedAt   DateTime         @updatedAt
+  version     Int      @default(1)
+  updatedAt   DateTime @updatedAt
   icon        String?
 
-  source      File?
+  source File?
 
-  authorId    String?
-  author      DeveloperUser?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorId String?
+  author   DeveloperUser? @relation(fields: [authorId], references: [id], onDelete: SetNull)
 
-  draftId     String?
-  draft       DraftPlugin?      @relation(fields: [draftId], references: [id], onDelete: SetNull)
+  draftId String?      @unique
+  draft   DraftPlugin? @relation(fields: [draftId], references: [id], onDelete: SetNull)
 
-  isDeleted   Boolean          @default(false)
+  isDeleted Boolean @default(false)
 
-  minWidth    Int              @default(1)
-  maxWidth    Int              @default(4)
-  minHeight   Int              @default(1)
-  maxHeight   Int              @default(4)
+  minWidth  Int @default(1)
+  maxWidth  Int @default(4)
+  minHeight Int @default(1)
+  maxHeight Int @default(4)
 
-  spaces      SpacePlugin[]
+  spaces SpacePlugin[]
 }
-
 
 // DEVELOPER
 
@@ -101,17 +99,17 @@ model DeveloperAccount {
 }
 
 model DeveloperSession {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
+  id           String        @id @default(cuid())
+  sessionToken String        @unique
   userId       String
   expires      DateTime
-  user         DeveloperUser     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         DeveloperUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model DeveloperUser {
-  id            String    @id @default(cuid())
+  id            String             @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?            @unique
   emailVerified DateTime?
   image         String?
   accounts      DeveloperAccount[]
@@ -120,24 +118,23 @@ model DeveloperUser {
   published     PublishedPlugin[]
 }
 
-
 // ADMIN
 
 model AdminSession {
-  id           String        @id @default(cuid())
-  sessionToken String        @unique
+  id           String    @id @default(cuid())
+  sessionToken String    @unique
   userId       String
   expires      DateTime
-  user         AdminUser     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model AdminUser {
-  id            String    @id @default(cuid())
+  id            String         @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?        @unique
   emailVerified DateTime?
   image         String?
-//  accounts      AdminAccount[]
+  //  accounts      AdminAccount[]
   sessions      AdminSession[]
   pluginLogs    PluginLog[]
 }
@@ -150,21 +147,20 @@ model AdminVerificationToken {
   @@unique([identifier, token])
 }
 
-
 // USER
 
 model RegularSession {
-  id           String        @id @default(cuid())
-  sessionToken String        @unique
+  id           String      @id @default(cuid())
+  sessionToken String      @unique
   userId       String
   expires      DateTime
-  user         RegularUser     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         RegularUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model RegularUser {
-  id            String    @id @default(cuid())
+  id            String           @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?          @unique
   emailVerified DateTime?
   image         String?
   accounts      RegularAccount[]
@@ -201,27 +197,25 @@ model RegularAccount {
   @@unique([provider, providerAccountId])
 }
 
-
 // logs
 
 model PluginLog {
-  id          String           @id @default(cuid())
-  date        DateTime         @default(now())
-  content     String
+  id      String   @id @default(cuid())
+  date    DateTime @default(now())
+  content String
 
-  admin       AdminUser?       @relation(fields: [adminId], references: [id], onDelete: SetNull)
-  adminId     String?
+  admin   AdminUser? @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  adminId String?
 
-  plugin      DraftPlugin      @relation(fields: [pluginId], references: [id], onDelete: Cascade)
-  pluginId    String
+  plugin   DraftPlugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+  pluginId String
 }
-
 
 // model
 
 model Space {
-  id          String           @id @default(cuid())
-  createdAt   DateTime         @default(now())
+  id          String        @id @default(cuid())
+  createdAt   DateTime      @default(now())
   name        String
   description String
   icon        String?
@@ -231,40 +225,40 @@ model Space {
 }
 
 model Invite {
-  id          String           @id @default(cuid())
-  createdAt   DateTime         @default(now())
-  expiresAt   DateTime?         
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
 
-  space       Space            @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  spaceId     String
+  space   Space  @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  spaceId String
 }
 
 model SpaceUser {
-  isOwner     Boolean          @default(false)
-  canEdit     Boolean          @default(false)
-  canInvite   Boolean          @default(false)
+  isOwner   Boolean @default(false)
+  canEdit   Boolean @default(false)
+  canInvite Boolean @default(false)
 
-  user        RegularUser      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
+  user   RegularUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
 
-  space       Space            @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  spaceId     String
+  space   Space  @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  spaceId String
 
   @@unique([userId, spaceId])
 }
 
 model SpacePlugin {
-  left        Int
-  top         Int
-  width       Int
-  height      Int
-  data        Json                @default("{}")
+  left   Int
+  top    Int
+  width  Int
+  height Int
+  data   Json @default("{}")
 
-  plugin      PublishedPlugin?    @relation(fields: [pluginId], references: [id])
-  pluginId    String
+  plugin   PublishedPlugin? @relation(fields: [pluginId], references: [id])
+  pluginId String
 
-  space       Space               @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  spaceId     String
+  space   Space  @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  spaceId String
 
   @@unique([pluginId, spaceId])
 }

@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "doppler run next dev -- -p 3002",
-    "build": "doppler run next build",
-    "start": "doppler run next start",
+    "dev": "next dev -- -p 3002",
+    "build": "next build",
+    "start": "next start",
     "lint": "next lint",
     "prisma-push": "git subtree push --prefix=prisma https://github.com/collapp-zpi/prisma main",
     "prisma-pull": "git subtree pull --prefix=prisma https://github.com/collapp-zpi/prisma main",
