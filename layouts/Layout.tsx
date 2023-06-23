@@ -107,7 +107,9 @@ export const Layout = ({
               </DropdownButton>
               <DropdownButton
                 onClick={() =>
-                  signOut({ callbackUrl: `${process.env.BASE_URL}` })
+                  signOut({
+                    callbackUrl: `${process.env.NEXT_PUBLIC_BASE_URL!}`,
+                  })
                 }
               >
                 <FiLogOut className="mr-2" />

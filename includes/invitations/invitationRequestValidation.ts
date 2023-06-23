@@ -57,7 +57,7 @@ export const sendInviteEmail = async (
     react: InviteTemplate({
       from,
       space: spaceName,
-      redirect: `${process.env.BASE_URL}/invitations/${inviteId}`,
+      redirect: `${process.env.NEXT_PUBLIC_BASE_URL}/invitations/${inviteId}`,
     }),
   })
 }
