@@ -99,7 +99,7 @@ const PluginBlock = ({
       {!loading && !err && !isDeleted && (
         <div className={pluginId} style={{ width: '100%', height: '100%' }}>
           <Component
-            websockets={websocketsUrl}
+            url={websocketsUrl}
             ids={{ plugin: pluginId, space: spaceId, user: userId }}
             users={users}
             size={{
